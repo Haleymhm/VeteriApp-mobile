@@ -1,6 +1,13 @@
 {
   "extends": ["expo"],
   "rules": {
-    "react/display-name": "off"
-  }
+    "react/display-name": "off",
+    "import/no-unresolved": ["error", { "ignore": ["\\.css$"] }]
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    ".expo/",
+    "*.bundle.js"
+  ]
 }

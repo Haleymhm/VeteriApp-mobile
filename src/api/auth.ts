@@ -13,8 +13,15 @@ export async function login(input: LoginInput): Promise<AuthUser> {
     '/auth/login',
     input,
   );
-  if (!data.success || !data.data) {
-    throw new ApiRequestError(data.error ?? 'No se pudo iniciar sesión');
+  if (!data.success) {
+    const errorMessage =
+      'error' in data && typeof data.error === 'string'
+        ? data.error
+        : 'No se pudo iniciar sesión';
+    throw new ApiRequestError(errorMessage);
+  }
+  if (!data.data) {
+    throw new ApiRequestError('No se pudo iniciar sesión');
   }
   return data.data.user;
 }

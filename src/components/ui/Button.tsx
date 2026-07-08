@@ -4,13 +4,16 @@ import { cn } from '@/lib/cn';
 type Variant = 'primary' | 'secondary' | 'ghost';
 type Size = 'sm' | 'md' | 'lg';
 
-export interface ButtonProps extends Omit<PressableProps, 'children'> {
+type PressEvent = Parameters<NonNullable<PressableProps['onPress']>>[0];
+
+export interface ButtonProps extends Omit<PressableProps, 'children' | 'onPress'> {
   title: string;
   variant?: Variant;
   size?: Size;
   loading?: boolean;
   fullWidth?: boolean;
   className?: string;
+  onPress?: (event: PressEvent) => void | Promise<void>;
 }
 
 const variantStyles: Record<Variant, { container: string; text: string }> = {
@@ -41,6 +44,7 @@ export function Button({
   loading = false,
   fullWidth = true,
   disabled,
+  onPress,
   className,
   ...rest
 }: ButtonProps) {
@@ -52,6 +56,7 @@ export function Button({
       accessibilityRole="button"
       accessibilityState={{ disabled: !!disabled || loading, busy: loading }}
       disabled={disabled || loading}
+      onPress={onPress as PressableProps['onPress']}
       className={cn(
         'flex-row items-center justify-center rounded-xl',
         sz.container,

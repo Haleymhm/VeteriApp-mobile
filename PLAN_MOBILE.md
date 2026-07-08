@@ -1,6 +1,6 @@
 # Plan Maestro: App Móvil - Portal del Cliente VeteriApp
 
-> **Versión:** 2.3.0
+> **Versión:** 2.4.0
 > **Fecha:** 2026-07-08
 > **Stack:** React Native + Expo (SDK 57) | API REST (Portal Client API v1)
 > **Repositorio único:** `veteriApp-mobile`
@@ -10,8 +10,8 @@
 
 | Fase | Estado | Detalle |
 |------|--------|---------|
-| **0. Configuración base** | ✅ Completo | Expo SDK 57, NativeWind 4 + Tailwind 3, TypeScript 5.5, ESLint (`expo`), Metro con `withNativeWind`, EAS, app.json (`userInterfaceStyle: automatic`), alias `@/*` |
-| **Fase 1 — Proyecto Base y Autenticación** | 🚧 En curso (~55%) | API client, storage seguro, auth store, validadores, hooks y UI base listos. Faltan pantallas (`login`, `register`, `forgot-password`), layout `(auth)`, root layout con guard, QueryClient provider y bootstrap de Expo Router |
+| **0. Configuración base** | ✅ Completo | Expo SDK 57, NativeWind 4 + Tailwind 3, TypeScript 5.5, ESLint (`expo` + `import/no-unresolved` para `.css`), Metro con `withNativeWind`, EAS, `app.json` (`userInterfaceStyle: automatic`, `web.bundler: metro`), alias `@/*` (babel `module-resolver` + tsconfig paths) |
+| **Fase 1 — Proyecto Base y Autenticación** | ✅ Completo | API client Axios (interceptor Bearer + `withCredentials` para cookies HttpOnly), storage seguro, `authStore` Zustand, validadores Zod 4, QueryClient provider, UI base (`Button`, `Input`), tres formularios (`Login`, `Register`, `ForgotPassword`), tres pantallas bajo `app/(auth)/*`, `AuthGuard`, root layout con guard, `(tabs)` placeholder, `App.tsx` Slot, entry de Expo Router, **build verde (`expo export` genera web/iOS/android bundles)** |
 | **Fase 2 — Navegación y Dashboard** | ⏳ Pendiente | — |
 | **Fase 3 — Mascotas y Citas** | ⏳ Pendiente | — |
 | **Fase 4 — Historial Médico** | ⏳ Pendiente | — |
@@ -30,7 +30,7 @@ Crear una **app móvil nativa** (iOS/Android) que funcione como el **Portal del 
 | **NX-01** | App nativa para iOS y Android usando Expo (última versión) |
 | **NX-02** | Consumir la API REST documentada en `PORTAL_CLIENT_API.md` sin modificar la lógica de negocio |
 | **NX-03** | Mantener el backend (Next.js) intacto y sin cambios en su estructura |
-| **NX-04** | Soportar autenticación via JWT Bearer Token |
+| **NX-04** | Soportar autenticación via JWT en cookies HttpOnly (ver `PORTAL_CLIENT_API.md`, sección *Autenticación*) — el cliente móvil hace `withCredentials: true` y verifica sesión con `GET /api/v1/auth/session` |
 | **NX-05** | Preparar la infraestructura para notificaciones push |
 | **NX-06** | Repositorio único para la app móvil |
 
@@ -40,80 +40,96 @@ Crear una **app móvil nativa** (iOS/Android) que funcione como el **Portal del 
 
 ### 2.1 Estructura del Proyecto (Repo Único)
 
+> **Leyenda:** `✅ implementado (Fase 1)` · `⏳ pendiente` (carpeta vacía reservada para la fase indicada)
+
 ```
 veteriApp-mobile/
-├── app/                        # Expo Router (navegación basada en archivos)
-│   ├── (auth)/
-│   │   ├── _layout.tsx         # Auth stack layout
-│   │   ├── login.tsx
-│   │   ├── register.tsx
-│   │   └── forgot-password.tsx
+├── app/                                  # Expo Router (file-based)
+│   ├── (auth)/                           # Auth stack
+│   │   ├── _layout.tsx                   ✅ SafeArea + KeyboardAvoiding + Stack
+│   │   ├── login.tsx                     ✅ Usa <LoginForm> + Link a register/forgot
+│   │   ├── register.tsx                  ✅ Usa <RegisterForm> + back to login
+│   │   └── forgot-password.tsx           ✅ Usa <ForgotPasswordForm> con pantalla de éxito
 │   │
-│   ├── (tabs)/                 # Bottom tabs (native-bottom-tabs)
-│   │   ├── _layout.tsx
-│   │   ├── index.tsx           # Home / Dashboard
-│   │   ├── pets/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── index.tsx       # Lista de mascotas
-│   │   │   └── [id].tsx        # Detalle de mascota
-│   │   ├── appointments/
-│   │   │   ├── _layout.tsx
-│   │   │   ├── index.tsx       # Lista de citas
-│   │   │   ├── new.tsx         # Nueva cita
-│   │   │   └── [id].tsx         # Detalle de cita
-│   │   └── profile/
-│   │       ├── _layout.tsx
-│   │       ├── index.tsx
-│   │       ├── edit.tsx
-│   │       └── change-password.tsx
+│   ├── (tabs)/                           # Bottom tabs (placeholder Fase 1)
+│   │   ├── _layout.tsx                   ✅ Stack placeholder (native bottom tabs en Fase 2)
+│   │   ├── index.tsx                     ✅ Placeholder "Bienvenido" (HomeScreen en Fase 2)
+│   │   ├── pets/                         ⏳ (Fase 3)
+│   │   ├── appointments/                 ⏳ (Fase 3)
+│   │   └── profile/                      ⏳ (Fase 2/4)
 │   │
-│   ├── medical-records/
-│   │   ├── [petId].tsx         # Historial médico de una mascota
-│   │   ├── vaccinations.tsx     # Vacunas
-│   │   ├── deworming.tsx       # Desparasitación
-│   │   └── chronic-conditions.tsx
+│   ├── medical-records/                  ⏳ (Fase 4)
 │   │
-│   ├── +html.tsx               # Web fallback
-│   ├── +not-found.tsx
-│   └── _layout.tsx              # Root layout
+│   ├── +not-found.tsx                    ✅ Pantalla 404 con redirección por sesión
+│   └── _layout.tsx                       ✅ Root (QueryClientProvider + SafeAreaProvider + AuthGuard + Stack)
 │
 ├── src/
-│   ├── api/                    # Cliente Axios y endpoints
-│   │   ├── client.ts           # Instancia de Axios configurada
-│   │   ├── auth.ts            # Endpoints de autenticación
-│   │   ├── pets.ts            # Endpoints de mascotas
-│   │   ├── appointments.ts    # Endpoints de citas
-│   │   ├── medical-records.ts # Endpoints de historial médico
-│   │   ├── profile.ts         # Endpoints de perfil
-│   │   └── public.ts          # Endpoints públicos (settings, categorías)
+│   ├── api/
+│   │   ├── client.ts                     ✅ Axios con interceptor Bearer + withCredentials
+│   │   ├── auth.ts                       ✅ login/logout/getSession/forgotPassword/resetPassword/register
+│   │   ├── pets.ts                       ⏳ (Fase 3)
+│   │   ├── appointments.ts               ⏳ (Fase 3)
+│   │   ├── medical-records.ts            ⏳ (Fase 4)
+│   │   ├── profile.ts                    ⏳ (Fase 2)
+│   │   └── public.ts                     ⏳ (Fase 3, settings + categorías)
 │   │
-│   ├── components/            # Componentes reutilizables
-│   │   ├── ui/                # Componentes base (Button, Input, Card, etc.)
-│   │   ├── forms/             # Formularios (LoginForm, RegisterForm, etc.)
-│   │   ├── lists/             # Componentes de lista (PetListItem, AppointmentCard, etc.)
-│   │   └── feedback/           # Loading, Error, Empty states
+│   ├── components/
+│   │   ├── ui/
+│   │   │   ├── Button.tsx                ✅ Variants primary/secondary/ghost, sizes sm/md/lg, loading
+│   │   │   └── Input.tsx                 ✅ Label + error + hint, forwardRef
+│   │   ├── forms/
+│   │   │   ├── LoginForm.tsx             ✅ Zod + useAuthStore.login
+│   │   │   ├── RegisterForm.tsx          ✅ Zod + authApi.register
+│   │   │   └── ForgotPasswordForm.tsx    ✅ Zod + authApi.forgotPassword + banner de éxito
+│   │   ├── feedback/
+│   │   │   └── AuthGuard.tsx             ✅ Spinner/loading + redirect segun status
+│   │   └── lists/                        ⏳ (Fase 3)
 │   │
-│   ├── hooks/                 # Custom hooks
-│   │   ├── useAuth.ts
-│   │   ├── usePets.ts
-│   │   ├── useAppointments.ts
-│   │   └── usePublicSettings.ts
+│   ├── hooks/
+│   │   ├── useAuth.ts                    ✅ Wrapper DX-friendly sobre authStore
+│   │   ├── useAuthStore.ts               ✅ Reexport named de Zustand + AuthState
+│   │   ├── usePets.ts                    ⏳ (Fase 3)
+│   │   ├── useAppointments.ts            ⏳ (Fase 3)
+│   │   └── usePublicSettings.ts          ⏳ (Fase 3)
 │   │
-│   ├── store/                  # Zustand stores
-│   │   ├── authStore.ts
-│   │   └── settingsStore.ts
+│   ├── store/
+│   │   ├── authStore.ts                  ✅ Zustand: hydrate/login/logout/refreshSession/clearError
+│   │   └── settingsStore.ts              ⏳ (Fase 3)
 │   │
-│   ├── lib/                    # Utilidades
-│   │   ├── storage.ts          # expo-secure-store wrapper
-│   │   ├── validators.ts       # Zod schemas
-│   │   └── utils.ts
+│   ├── lib/
+│   │   ├── storage.ts                    ✅ Wrapper expo-secure-store (get/set/delete)
+│   │   ├── storageKeys.ts                ✅ Constantes de keys SecureStore
+│   │   ├── validators.ts                 ✅ Zod schemas login/register/forgotPassword/resetPassword
+│   │   ├── changePassword.ts             ✅ Zod schema change-password (Fase 2)
+│   │   ├── errors.ts                     ✅ ApiRequestError + unwrap + getErrorMessage
+│   │   ├── queryClient.ts                ✅ QueryClient singleton
+│   │   ├── useZodForm.ts                 ✅ Hook controlado (sin RHF) para forms
+│   │   ├── cn.ts                         ✅ Utilidad para concatenar clases
+│   │   └── rut.ts                        ✅ Validador RUT chileno (perfil/edit)
 │   │
-│   └── types/                  # Tipos TypeScript
-│       ├── api.ts             # Response types basados en API docs
-│       ├── auth.ts
-│       ├── pet.ts
-│       ├── appointment.ts
-│       └── index.ts
+│   └── types/
+│       ├── auth.ts                       ✅ Role, AuthUser, LoginResponse, SessionResponse, ApiResponse
+│       ├── inputs.ts                     ✅ LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput
+│       ├── pet.ts                        ⏳ (Fase 3)
+│       ├── appointment.ts                ⏳ (Fase 3)
+│       └── index.ts                      ✅ Barrel
+│
+├── assets/                               ⏳ Iconos por defecto (a personalizar Fase 1 cierre / branding)
+├── babel.config.js                       ✅ Module-resolver (@/), preset Expo (jsxImportSource: nativewind), nativewind/babel
+├── metro.config.js                       ✅ withNativeWind(config, { input: "./global.css" })
+├── tailwind.config.js                    ✅ Preset nativewind + theme.extend.colors VeteriApp
+├── global.css                            ✅ @tailwind base/components/utilities
+├── nativewind-env.d.ts                   ✅ /// <reference types="nativewind/types" />
+├── eas.json                              ✅ development / preview / production
+├── .eslintrc.json                        ✅ expo + ignore para .css + ignorePatterns dist/node_modules
+├── tsconfig.json                         ✅ expo/tsconfig.base + alias @/* + paths
+├── app.json                              ✅ userInterfaceStyle: automatic, web.bundler: metro
+├── App.tsx                               ✅ Slot + import global.css (bootstrap)
+├── index.ts                              ✅ import "expo-router/entry"
+├── package.json                          ✅ packageManager pnpm@9.15.1 + scripts (start/android/ios/web/build/test/lint/typecheck/eas:*)
+├── pnpm-lock.yaml                        ✅ único lockfile (npm eliminado)
+└── tsconfig.json
+```
 │
 ├── assets/                     # Imágenes, iconos, fonts
 ├── eas.json                    # Configuración de EAS Build
@@ -151,11 +167,12 @@ veteriApp-mobile/
 
 | Endpoint | Método | Descripción |
 |----------|--------|-------------|
-| `/api/v1/auth/login` | POST | Iniciar sesión (retorna JWT token) |
+| `/api/v1/auth/login` | POST | Iniciar sesión (setea cookie HttpOnly con JWT) |
 | `/api/v1/auth/logout` | POST | Cerrar sesión |
-| `/api/v1/auth/session` | GET | Verificar sesión activa |
+| `/api/v1/auth/session` | GET | Verificar sesión activa (aprovecha cookie) |
 | `/api/v1/auth/forgot-password` | POST | Solicitar recuperación de contraseña |
 | `/api/v1/auth/reset-password` | POST | Restablecer contraseña con token |
+| `/api/v1/auth/register` | POST | Registro público (Fase 1 implementado — pendiente de confirmar al backend, no figura en `PORTAL_CLIENT_API.md` original) |
 
 ### 3.2 Perfil
 
@@ -303,25 +320,36 @@ Root (Native Stack)
 ### Fase 1: Proyecto Base y Autenticación
 **Objetivo:** Configurar proyecto, implementar login/logout/registro.
 
+**Estado:** ✅ **Completado** (2026-07-08)
+
 **Tareas:**
-- [x] Crear proyecto Expo con TypeScript (SDK 57, base inicial)
-- [x] Configurar NativeWind y tema (babel + metro + tailwind.config.js con paleta VeteriApp, global.css, nativewind-env.d.ts)
-- [x] Implementar API client con Axios (interceptor Authorization) — `src/api/client.ts`
-- [x] Implementar storage seguro para token — `src/lib/storage.ts` (wrapper sobre `expo-secure-store`)
+- [x] Crear proyecto Expo con TypeScript (SDK 57)
+- [x] Configurar NativeWind y tema (`babel.config.js`, `metro.config.js`, `tailwind.config.js`, `global.css`, `nativewind-env.d.ts`)
+- [x] Implementar API client con Axios (interceptor Authorization + `withCredentials: true` para cookies HttpOnly) — `src/api/client.ts`
+- [x] Implementar storage seguro sobre `expo-secure-store` — `src/lib/storage.ts`
 - [x] Implementar endpoints de auth — `src/api/auth.ts` (`login`, `logout`, `getSession`, `forgotPassword`, `resetPassword`, `register`)
-- [x] Implementar Zod validators (`login`, `register`, `forgot`, `changePassword`) — `src/lib/validators.ts`
-- [x] Implementar auth store con Zustand — `src/store/authStore.ts` con `hydrate`, `login`, `logout`, `refreshSession`
+- [x] Implementar Zod validators (`login`, `register`, `forgot`, `changePassword`) — `src/lib/validators.ts` + `changePassword.ts`
+- [x] Implementar auth store con Zustand — `src/store/authStore.ts` (`hydrate`, `login`, `logout`, `refreshSession`, `clearError`)
 - [x] Implementar QueryClient provider — `src/lib/queryClient.ts`
 - [x] Implementar componente UI `Button` e `Input` con NativeWind — `src/components/ui/`
-- [ ] Implementar `LoginScreen` (form + UI lista, falta pantalla)
-- [ ] Implementar `RegisterScreen` (form + UI lista, falta pantalla)
-- [ ] Implementar `ForgotPasswordScreen` (form + UI lista, falta pantalla)
-- [ ] Configurar Expo Router (entry → `expo-router/entry`)
-- [ ] Crear `app/(auth)/_layout.tsx` y `app/_layout.tsx` con AuthGuard
-- [ ] Proteger rutas (redirect si no hay token)
-- [ ] **Commit:** `(feat) Fase 1: Proyecto base y autenticación`
+- [x] Implementar `LoginScreen` — `app/(auth)/login.tsx` + `src/components/forms/LoginForm.tsx`
+- [x] Implementar `RegisterScreen` — `app/(auth)/register.tsx` + `src/components/forms/RegisterForm.tsx`
+- [x] Implementar `ForgotPasswordScreen` — `app/(auth)/forgot-password.tsx` + `src/components/forms/ForgotPasswordForm.tsx`
+- [x] Configurar Expo Router (`app/_layout.tsx`, `app/(auth)/_layout.tsx`, `App.tsx` como Slot, `index.ts` → `expo-router/entry`)
+- [x] Crear `AuthGuard` con spinner/loading + redirect si no hay sesión — `src/components/feedback/AuthGuard.tsx`
+- [x] Proteger rutas (status `unauthenticated`/(zona privada) → redirect a `/(auth)/login`; `authenticated`/(zona auth) → redirect a `/(tabs)`)
+- [x] Verificación de calidad: `pnpm typecheck`, `pnpm lint`, `pnpm build` (`expo export` → web/iOS/android bundles OK)
+- [ ] **Commit:** `(feat) Fase 1: Proyecto base y autenticación` — pendiente a la decisión del usuario
 
-> **Nota de implementación:** La API real (ver `PORTAL_CLIENT_API.md`) usa JWT en **cookies HttpOnly**, no header `Authorization: Bearer`. El cliente Axios se configura con `withCredentials: true` y, además, envía el token guardado en SecureStore por si se migra en el futuro a Bearer. El `authStore` prioriza la verificación de sesión contra `/auth/session` (que aprovecha la cookie) antes de confiar en el token persistido.
+**Decisiones técnicas relevantes:**
+1. **Autenticación real por cookies HttpOnly** (no Bearer puro): `withCredentials: true` en Axios + verificación de sesión mediante `GET /api/v1/auth/session` desde `authStore.hydrate()` (aprovecha la cookie). El header `Authorization: Bearer` se envía solo si hay token persistido en SecureStore (compatibilidad hacia atrás si el backend migra a Bearer).
+2. **NativeWind 4 + Tailwind CSS 3.4.x**: `react-native-css-interop` añadido como dependencia directa (era transitiva y Metro no resolvía `jsx-runtime`); `tg=node_modules/nativewind/dist` apunta al preset/tailwind/preset. Mantener Tailwind **en 3.4.x** es obligatorio.
+3. **Alias `@/*`** vía `babel-plugin-module-resolver` + tsconfig `paths` para construir un runtime consistente entre Babel y TypeScript.
+4. **`useZodForm`** ligero (sin React-Hook-Form) para mantener el bundle pequeño y evitar contratos con NativeWind controlado manual.
+5. **`AuthGuard`** funciona como redirect server-side logic: hay un spinner mientras `status === 'idle'|'loading'`. Cuando `status === 'authenticated'` NO renderiza la zona `(auth)`, etc.
+6. **`expo export`** produce bundles exitosos para las tres plataformas; cualquier cambio futuro en babel/metro/nativewind debe re-validarse con `pnpm build`.
+
+### Fase 2: Navegación y Dashboard
 
 ### Fase 2: Navegación y Dashboard
 **Objetivo:** Implementar navegación tabs y home.
@@ -565,4 +593,4 @@ const user = useAuthStore(state => state.user)
 
 ---
 
-*Documento actualizado el 2026-07-08 (v2.3.0 — Fase 1 en curso al ~55%, infra completa, faltan pantallas auth + layouts + guard)*
+*Documento actualizado el 2026-07-08 (v2.4.0 — Fase 1 completada, build verde en web/iOS/Android; `pnpm typecheck`, `pnpm lint`, `pnpm build` OK)*

@@ -4,7 +4,7 @@ import { getSecureItem, deleteSecureItem, setSecureItem } from '@/lib/storage';
 import { STORAGE_KEYS } from '@/lib/storageKeys';
 import * as authApi from '@/api/auth';
 
-interface AuthState {
+export interface AuthState {
   user: AuthUser | null;
   token: string | null;
   status: 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
