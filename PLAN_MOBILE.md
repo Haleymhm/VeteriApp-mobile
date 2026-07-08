@@ -1,10 +1,21 @@
 # Plan Maestro: App Móvil - Portal del Cliente VeteriApp
 
-> **Versión:** 2.1.0
+> **Versión:** 2.3.0
 > **Fecha:** 2026-07-08
 > **Stack:** React Native + Expo (SDK 57) | API REST (Portal Client API v1)
 > **Repositorio único:** `veteriApp-mobile`
 > **Gestor de paquetes:** pnpm
+
+### Progreso General
+
+| Fase | Estado | Detalle |
+|------|--------|---------|
+| **0. Configuración base** | ✅ Completo | Expo SDK 57, NativeWind 4 + Tailwind 3, TypeScript 5.5, ESLint (`expo`), Metro con `withNativeWind`, EAS, app.json (`userInterfaceStyle: automatic`), alias `@/*` |
+| **Fase 1 — Proyecto Base y Autenticación** | 🚧 En curso (~55%) | API client, storage seguro, auth store, validadores, hooks y UI base listos. Faltan pantallas (`login`, `register`, `forgot-password`), layout `(auth)`, root layout con guard, QueryClient provider y bootstrap de Expo Router |
+| **Fase 2 — Navegación y Dashboard** | ⏳ Pendiente | — |
+| **Fase 3 — Mascotas y Citas** | ⏳ Pendiente | — |
+| **Fase 4 — Historial Médico** | ⏳ Pendiente | — |
+| **Fase 5 — Notificaciones Push** | ⏳ Pendiente | — |
 
 ---
 
@@ -293,16 +304,24 @@ Root (Native Stack)
 **Objetivo:** Configurar proyecto, implementar login/logout/registro.
 
 **Tareas:**
-- [ ] Crear proyecto Expo con TypeScript
-- [ ] Configurar NativeWind y tema
-- [ ] Implementar API client con Axios (interceptor Bearer Token)
-- [ ] Implementar storage seguro para token
-- [ ] Implementar `LoginScreen`
-- [ ] Implementar `RegisterScreen`
-- [ ] Implementar `ForgotPasswordScreen`
-- [ ] Implementar auth store con Zustand
+- [x] Crear proyecto Expo con TypeScript (SDK 57, base inicial)
+- [x] Configurar NativeWind y tema (babel + metro + tailwind.config.js con paleta VeteriApp, global.css, nativewind-env.d.ts)
+- [x] Implementar API client con Axios (interceptor Authorization) — `src/api/client.ts`
+- [x] Implementar storage seguro para token — `src/lib/storage.ts` (wrapper sobre `expo-secure-store`)
+- [x] Implementar endpoints de auth — `src/api/auth.ts` (`login`, `logout`, `getSession`, `forgotPassword`, `resetPassword`, `register`)
+- [x] Implementar Zod validators (`login`, `register`, `forgot`, `changePassword`) — `src/lib/validators.ts`
+- [x] Implementar auth store con Zustand — `src/store/authStore.ts` con `hydrate`, `login`, `logout`, `refreshSession`
+- [x] Implementar QueryClient provider — `src/lib/queryClient.ts`
+- [x] Implementar componente UI `Button` e `Input` con NativeWind — `src/components/ui/`
+- [ ] Implementar `LoginScreen` (form + UI lista, falta pantalla)
+- [ ] Implementar `RegisterScreen` (form + UI lista, falta pantalla)
+- [ ] Implementar `ForgotPasswordScreen` (form + UI lista, falta pantalla)
+- [ ] Configurar Expo Router (entry → `expo-router/entry`)
+- [ ] Crear `app/(auth)/_layout.tsx` y `app/_layout.tsx` con AuthGuard
 - [ ] Proteger rutas (redirect si no hay token)
 - [ ] **Commit:** `(feat) Fase 1: Proyecto base y autenticación`
+
+> **Nota de implementación:** La API real (ver `PORTAL_CLIENT_API.md`) usa JWT en **cookies HttpOnly**, no header `Authorization: Bearer`. El cliente Axios se configura con `withCredentials: true` y, además, envía el token guardado en SecureStore por si se migra en el futuro a Bearer. El `authStore` prioriza la verificación de sesión contra `/auth/session` (que aprovecha la cookie) antes de confiar en el token persistido.
 
 ### Fase 2: Navegación y Dashboard
 **Objetivo:** Implementar navegación tabs y home.
@@ -546,4 +565,4 @@ const user = useAuthStore(state => state.user)
 
 ---
 
-*Documento actualizado el 2026-07-08 (v2.1.0 — alineado a Expo SDK 57 y AGENTS.md)*
+*Documento actualizado el 2026-07-08 (v2.3.0 — Fase 1 en curso al ~55%, infra completa, faltan pantallas auth + layouts + guard)*
