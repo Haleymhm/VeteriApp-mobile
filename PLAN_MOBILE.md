@@ -1,6 +1,6 @@
 # Plan Maestro: App Móvil - Portal del Cliente VeteriApp
 
-> **Versión:** 2.4.0
+> **Versión:** 2.5.0
 > **Fecha:** 2026-07-08
 > **Stack:** React Native + Expo (SDK 57) | API REST (Portal Client API v1)
 > **Repositorio único:** `veteriApp-mobile`
@@ -12,7 +12,7 @@
 |------|--------|---------|
 | **0. Configuración base** | ✅ Completo | Expo SDK 57, NativeWind 4 + Tailwind 3, TypeScript 5.5, ESLint (`expo` + `import/no-unresolved` para `.css`), Metro con `withNativeWind`, EAS, `app.json` (`userInterfaceStyle: automatic`, `web.bundler: metro`), alias `@/*` (babel `module-resolver` + tsconfig paths) |
 | **Fase 1 — Proyecto Base y Autenticación** | ✅ Completo | API client Axios (interceptor Bearer + `withCredentials` para cookies HttpOnly), storage seguro, `authStore` Zustand, validadores Zod 4, QueryClient provider, UI base (`Button`, `Input`), tres formularios (`Login`, `Register`, `ForgotPassword`), tres pantallas bajo `app/(auth)/*`, `AuthGuard`, root layout con guard, `(tabs)` placeholder, `App.tsx` Slot, entry de Expo Router, **build verde (`expo export` genera web/iOS/android bundles)** |
-| **Fase 2 — Navegación y Dashboard** | ⏳ Pendiente | — |
+| **Fase 2 — Navegación y Dashboard** | ✅ Completo | `NativeTabs` (4 tabs nativas: Inicio, Mascotas, Citas, Perfil) con SF Symbols iOS + Material Android; `HomeScreen` con próximas citas + CTA agendar; `ProfileScreen`, `EditProfileScreen`, `ChangePasswordScreen` con TanStack Query; hooks (`useProfile`, `usePets`, `useAppointments`, `usePublicSettings`, `useCategories`); API endpoints `pets`, `appointments`, `profile`, `public`; UI libs (`Card`, `Badge`, `Avatar`, `Section`, `AppointmentCard`, `Loading/Empty/ErrorState`); helpers (`formatDate`, `formatDateTime`, `isFuture`, `getAppointmentStatus`); build verde |
 | **Fase 3 — Mascotas y Citas** | ⏳ Pendiente | — |
 | **Fase 4 — Historial Médico** | ⏳ Pendiente | — |
 | **Fase 5 — Notificaciones Push** | ⏳ Pendiente | — |
@@ -51,12 +51,20 @@ veteriApp-mobile/
 │   │   ├── register.tsx                  ✅ Usa <RegisterForm> + back to login
 │   │   └── forgot-password.tsx           ✅ Usa <ForgotPasswordForm> con pantalla de éxito
 │   │
-│   ├── (tabs)/                           # Bottom tabs (placeholder Fase 1)
-│   │   ├── _layout.tsx                   ✅ Stack placeholder (native bottom tabs en Fase 2)
-│   │   ├── index.tsx                     ✅ Placeholder "Bienvenido" (HomeScreen en Fase 2)
-│   │   ├── pets/                         ⏳ (Fase 3)
-│   │   ├── appointments/                 ⏳ (Fase 3)
-│   │   └── profile/                      ⏳ (Fase 2/4)
+│   ├── (tabs)/                           # Native bottom tabs (Fase 2)
+│   │   ├── _layout.tsx                   ✅ NativeTabs (Inicio/Mascotas/Citas/Perfil)
+│   │   ├── index.tsx                     ✅ HomeScreen: saludo, CTA agendar, próximas 3 citas, placeholder notificaciones
+│   │   ├── pets/
+│   │   │   ├── _layout.tsx               ✅ Stack placeholder
+│   │   │   └── index.tsx                 ✅ Listado de mascotas (Fase 3 traerá CRUD y detalle)
+│   │   ├── appointments/
+│   │   │   ├── _layout.tsx               ✅ Stack placeholder
+│   │   │   └── index.tsx                 ✅ Listado próximas/historial (Fase 3 traerá new + detalle)
+│   │   └── profile/
+│   │       ├── _layout.tsx               ✅ Stack placeholder
+│   │       ├── index.tsx                 ✅ ProfileScreen con datos + acciones (editar/cambiar pass/logout)
+│   │       ├── edit.tsx                  ✅ EditProfileScreen con Zod + useUpdateProfile
+│   │       └── change-password.tsx       ✅ ChangePasswordScreen con Zod + useChangePassword
 │   │
 │   ├── medical-records/                  ⏳ (Fase 4)
 │   │
@@ -67,30 +75,36 @@ veteriApp-mobile/
 │   ├── api/
 │   │   ├── client.ts                     ✅ Axios con interceptor Bearer + withCredentials
 │   │   ├── auth.ts                       ✅ login/logout/getSession/forgotPassword/resetPassword/register
-│   │   ├── pets.ts                       ⏳ (Fase 3)
-│   │   ├── appointments.ts               ⏳ (Fase 3)
-│   │   ├── medical-records.ts            ⏳ (Fase 4)
-│   │   ├── profile.ts                    ⏳ (Fase 2)
-│   │   └── public.ts                     ⏳ (Fase 3, settings + categorías)
+│   │   ├── pets.ts                       ✅ getPets / getPet / createPet / updatePet
+│   │   ├── appointments.ts               ✅ getAppointments / createAppointment / updateAppointment
+│   │   ├── profile.ts                    ✅ getProfile / updateProfile / changePassword
+│   │   ├── public.ts                     ✅ getPublicSettings (schedule + holidays) + getCategories
 │   │
 │   ├── components/
 │   │   ├── ui/
-│   │   │   ├── Button.tsx                ✅ Variants primary/secondary/ghost, sizes sm/md/lg, loading
-│   │   │   └── Input.tsx                 ✅ Label + error + hint, forwardRef
+│   │   │   ├── Button.tsx                ✅ Variants primary/secondary/ghost, sizes sm/md/lg, loading, async onPress
+│   │   │   ├── Input.tsx                 ✅ Label + error + hint, forwardRef
+│   │   │   ├── Card.tsx                  ✅ Contenedor "card" con borde y padding
+│   │   │   ├── Badge.tsx                 ✅ Pill de estado customizable (label/bgClass/textClass)
+│   │   │   ├── Avatar.tsx                ✅ Imagen o iniciales calculadas
+│   │   │   └── Section.tsx               ✅ Encabezado (title/subtitle/trailing) + gap configurable
 │   │   ├── forms/
 │   │   │   ├── LoginForm.tsx             ✅ Zod + useAuthStore.login
 │   │   │   ├── RegisterForm.tsx          ✅ Zod + authApi.register
 │   │   │   └── ForgotPasswordForm.tsx    ✅ Zod + authApi.forgotPassword + banner de éxito
 │   │   ├── feedback/
-│   │   │   └── AuthGuard.tsx             ✅ Spinner/loading + redirect segun status
-│   │   └── lists/                        ⏳ (Fase 3)
+│   │   │   ├── AuthGuard.tsx             ✅ Spinner/loading + redirect segun status
+│   │   │   └── States.tsx                ✅ Loading, Empty y ErrorState reutilizables
+│   │   └── lists/
+│   │       └── AppointmentCard.tsx       ✅ Pet avatar + fecha + vet + status badge (Fase 2)
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts                    ✅ Wrapper DX-friendly sobre authStore
 │   │   ├── useAuthStore.ts               ✅ Reexport named de Zustand + AuthState
-│   │   ├── usePets.ts                    ⏳ (Fase 3)
-│   │   ├── useAppointments.ts            ⏳ (Fase 3)
-│   │   └── usePublicSettings.ts          ⏳ (Fase 3)
+│   │   ├── useProfile.ts                 ✅ useProfile / useUpdateProfile / useChangePassword (TanStack Query)
+│   │   ├── usePets.ts                    ✅ usePets / usePet / create / update
+│   │   ├── useAppointments.ts            ✅ useAppointments / create / update
+│   │   └── usePublicSettings.ts          ✅ usePublicSettings + useCategories
 │   │
 │   ├── store/
 │   │   ├── authStore.ts                  ✅ Zustand: hydrate/login/logout/refreshSession/clearError
@@ -100,18 +114,21 @@ veteriApp-mobile/
 │   │   ├── storage.ts                    ✅ Wrapper expo-secure-store (get/set/delete)
 │   │   ├── storageKeys.ts                ✅ Constantes de keys SecureStore
 │   │   ├── validators.ts                 ✅ Zod schemas login/register/forgotPassword/resetPassword
-│   │   ├── changePassword.ts             ✅ Zod schema change-password (Fase 2)
+│   │   ├── changePassword.ts             ✅ Zod schema change-password
+│   │   ├── editProfile.ts                ✅ Zod schema edit-profile (Fase 2)
 │   │   ├── errors.ts                     ✅ ApiRequestError + unwrap + getErrorMessage
 │   │   ├── queryClient.ts                ✅ QueryClient singleton
 │   │   ├── useZodForm.ts                 ✅ Hook controlado (sin RHF) para forms
 │   │   ├── cn.ts                         ✅ Utilidad para concatenar clases
+│   │   ├── formatDate.ts                 ✅ Helpers date-fns + mapa status -> badge
 │   │   └── rut.ts                        ✅ Validador RUT chileno (perfil/edit)
 │   │
 │   └── types/
 │       ├── auth.ts                       ✅ Role, AuthUser, LoginResponse, SessionResponse, ApiResponse
 │       ├── inputs.ts                     ✅ LoginInput, RegisterInput, ForgotPasswordInput, ResetPasswordInput
-│       ├── pet.ts                        ⏳ (Fase 3)
-│       ├── appointment.ts                ⏳ (Fase 3)
+│       ├── pet.ts                        ✅ Pet, PetsListResponse, PetCreateInput, PetUpdateInput
+│       ├── appointment.ts                ✅ Appointment, AppointmentStatus, CreateAppointmentInput, UpdateAppointmentInput
+│       ├── profile.ts                    ✅ Profile, ProfileUpdateInput, Region/Comuna
 │       └── index.ts                      ✅ Barrel
 │
 ├── assets/                               ⏳ Iconos por defecto (a personalizar Fase 1 cierre / branding)
@@ -339,7 +356,7 @@ Root (Native Stack)
 - [x] Crear `AuthGuard` con spinner/loading + redirect si no hay sesión — `src/components/feedback/AuthGuard.tsx`
 - [x] Proteger rutas (status `unauthenticated`/(zona privada) → redirect a `/(auth)/login`; `authenticated`/(zona auth) → redirect a `/(tabs)`)
 - [x] Verificación de calidad: `pnpm typecheck`, `pnpm lint`, `pnpm build` (`expo export` → web/iOS/android bundles OK)
-- [ ] **Commit:** `(feat) Fase 1: Proyecto base y autenticación` — pendiente a la decisión del usuario
+- [x] **Commit:** `(feat) Fase 1: Proyecto base y autenticación` — pendiente a la decisión del usuario
 
 **Decisiones técnicas relevantes:**
 1. **Autenticación real por cookies HttpOnly** (no Bearer puro): `withCredentials: true` en Axios + verificación de sesión mediante `GET /api/v1/auth/session` desde `authStore.hydrate()` (aprovecha la cookie). El header `Authorization: Bearer` se envía solo si hay token persistido en SecureStore (compatibilidad hacia atrás si el backend migra a Bearer).
@@ -354,13 +371,41 @@ Root (Native Stack)
 ### Fase 2: Navegación y Dashboard
 **Objetivo:** Implementar navegación tabs y home.
 
+**Estado:** ✅ **Completado** (2026-07-08)
+
 **Tareas:**
-- [ ] Configurar Expo Router con native-bottom-tabs
-- [ ] Implementar `HomeScreen` (dashboard con próximas citas)
-- [ ] Implementar `ProfileScreen`
-- [ ] Implementar `EditProfileScreen`
-- [ ] Implementar `ChangePasswordScreen`
-- [ ] **Commit:** `(feat) Fase 2: Navegación y Dashboard`
+- [x] Configurar Expo Router con `NativeTabs` nativos (`expo-router/unstable-native-tabs`)
+  - 4 tabs: **Inicio / Mascotas / Citas / Perfil**
+  - SF Symbols iOS (`house`, `pawprint`, `calendar`, `person.crop.circle`) + Material Android (`home`, `pets`, `event`, `person`)
+- [x] Implementar `HomeScreen` (`app/(tabs)/index.tsx`) con:
+  - Saludo personalizado (`useAuth().user.firstName`)
+  - Tarjeta rápida "Agendar nueva cita" → push al tab de citas (placeholder por ahora; Fase 3 crea el formulario real)
+  - Liste las **próximas 3 citas** vía `useAppointments()` filtrando por fecha futura y status distinto de `CANCELLED`
+  - Placeholder de notificaciones
+  - `RefreshControl` para pull-to-refresh
+  - `useFocusEffect` para re-fetch al volver a la pantalla
+  - Estados `Loading`, `Empty`, `ErrorState` reusables
+- [x] Implementar `ProfileScreen` (`app/(tabs)/profile/index.tsx`) con `useProfile()` mostrando email, teléfono, dirección, RUT, comuna y región; estado de carga; acciones: Editar / Cambiar contraseña / **Cerrar sesión** (`useAuth().logout`)
+- [x] Implementar `EditProfileScreen` (`app/(tabs)/profile/edit.tsx`) con `useZodForm` + `editProfileSchema`, invocando `useUpdateProfile` (TanStack Query mutation) con invalidación y feedback de éxito
+- [x] Implementar `ChangePasswordScreen` (`app/(tabs)/profile/change-password.tsx`) con `changePasswordSchema` y `useChangePassword`
+- [x] Implementar `pets/index.tsx` y `appointments/index.tsx` (listado básico, **CRUD/detail se completará en Fase 3**; tamaño mensaje de "Próximamente" en el de citas)
+- [x] Hooks TanStack Query: `useProfile`, `useUpdateProfile`, `useChangePassword`, `usePets`, `usePet`, `useCreatePet`, `useUpdatePet`, `useAppointments`, `useCreateAppointment`, `useUpdateAppointment`, `usePublicSettings`, `useCategories`
+- [x] API endpoints: `pets`, `appointments`, `profile`, `public` (settings + categorías)
+- [x] Componentes UI nuevos: `Card`, `Badge`, `Avatar` (con iniciales fallback), `Section`
+- [x] Componentes feedback nuevos: `Loading`, `Empty`, `ErrorState`
+- [x] Listas: `AppointmentCard` (avatar mascota + formateo fecha con futura vs pasada + vet + status)
+- [x] Helpers: `formatDate`, `formatDateTime`, `formatTime`, `fromNow`, `isFuture`, `getAppointmentStatus` (color por estado)
+- [x] Barrel de tipos actualizado con `pet`, `appointment`, `profile`
+- [x] Validación final: `pnpm typecheck`, `pnpm lint`, `pnpm build` (web 3 MB, iOS 5.5 MB, Android 5.7 MB; módulo `native-tabs.module.css` compilado)
+- [ ] **Commit:** `(feat) Fase 2: Navegación y Dashboard` — pendiente a la decisión del usuario
+
+**Notas técnicas relevantes:**
+1. **`NativeTabs` unstable**: en SDK 57 se importa de `expo-router/unstable-native-tabs` (no requiere paquete adicional). Resuelve iconos con SF Symbols / Material sin necesidad de paquete de iconos adicional.
+2. **Per-tap `_layout.tsx` con `Stack`**: cada tab (`pets`, `appointments`, `profile`) tiene su propio `_layout` con Stack para soportar navegación interna (detalles/detalle/Fase 3-4) sin mezclarse con la jerarquía de tabs.
+3. **`useUpdateProfile` con invalidación selectiva**: `setQueryData` actualiza el cache de `['profile']` con la respuesta; sin invalidar `['appointments']` etc.
+4. **`formatDate.ts`**: tabla única de `STATUS_MAP` que mapea cada `AppointmentStatus` a `Badge` colors/t(`warning`/`success`/`primary`/`danger`/`gray`)`. El `AppointmentCard` consume este helper para mantener la vista y la lógica de status en un solo lugar.
+5. **Avatar fallback**: cuando no hay `imageUrl`, se dibuja un círculo con iniciales (`useMemo`/`fn` no necesaria porque solo se ejecuta al renderizar). El tamaño se controla con `size` prop.
+6. **`useFocusEffect(refetch)`: cada vez que el usuario vuelve a Home se re-fetchan citas y mascotas. Combinado con `RefreshControl` permite pull-to-refresh manual.
 
 ### Fase 3: Mascotas y Citas
 **Objetivo:** Implementar módulos de mascotas y citas.
@@ -593,4 +638,4 @@ const user = useAuthStore(state => state.user)
 
 ---
 
-*Documento actualizado el 2026-07-08 (v2.4.0 — Fase 1 completada, build verde en web/iOS/Android; `pnpm typecheck`, `pnpm lint`, `pnpm build` OK)*
+*Documento actualizado el 2026-07-08 (v2.5.0 — Fase 2 completada: NativeTabs (Inicio/Mascotas/Citas/Perfil) + HomeScreen dashboard con TanStack Query + Profile + EditProfile + ChangePassword; `pnpm typecheck`, `pnpm lint`, `pnpm build` OK; módulo `native-tabs.module.css` generado en build)*
