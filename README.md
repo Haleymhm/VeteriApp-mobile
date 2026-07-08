@@ -1,1 +1,0 @@
-# VeteriApp-mobile
