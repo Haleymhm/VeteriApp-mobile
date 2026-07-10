@@ -11,3 +11,9 @@ export {
   useUpdateAppointment,
 } from './useAppointments';
 export { usePublicSettings, useCategories } from './usePublicSettings';
+export {
+  useMedicalRecords,
+  useVaccinations,
+  useDeworming,
+  useChronicConditions,
+} from './useMedicalRecords';

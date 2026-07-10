@@ -4,3 +4,4 @@ export * as profileApi from './profile';
 export * as petsApi from './pets';
 export * as appointmentsApi from './appointments';
 export * as publicApi from './public';
+export * as medicalRecordsApi from './medicalRecords';

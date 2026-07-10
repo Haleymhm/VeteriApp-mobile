@@ -1,7 +1,8 @@
 import { useCallback } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View, Pressable } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
+import { ChevronRight } from 'lucide-react-native';
 import { usePet } from '@/hooks/usePets';
 import { useAppointments } from '@/hooks/useAppointments';
 import { Avatar } from '@/components/ui/Avatar';
@@ -179,15 +180,25 @@ export default function PetDetailScreen() {
 
           {petAppointments.length > upcomingForPet.length ? (
             <Section
-              title="Historial"
+              title="Historial Médico"
               subtitle={`${petAppointments.length - upcomingForPet.length} cita(s) pasadas o canceladas`}
             >
-              <Card>
-                <Text className="text-sm text-gray-700">
-                  El historial completo (consultas, vacunas y desparasitación)
-                  estará disponible en la Fase 4.
-                </Text>
-              </Card>
+              <Pressable
+                onPress={() =>
+                  router.push(`/medical-records/${petId}` as never)
+                }
+                className="flex-row items-center justify-between rounded-xl border border-gray-200 bg-white p-4 active:bg-gray-50"
+              >
+                <View className="gap-1">
+                  <Text className="text-base font-medium text-gray-900">
+                    Ver historial médico
+                  </Text>
+                  <Text className="text-sm text-gray-500">
+                    Consultas, vacunas, desparasitación y más
+                  </Text>
+                </View>
+                <ChevronRight size={20} color="#9CA3AF" />
+              </Pressable>
             </Section>
           ) : null}
         </ScrollView>

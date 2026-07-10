@@ -14,7 +14,7 @@
 | **Fase 1 — Proyecto Base y Autenticación** | ✅ Completo | API client Axios (interceptor Bearer + `withCredentials` para cookies HttpOnly), storage seguro, `authStore` Zustand, validadores Zod 4, QueryClient provider, UI base (`Button`, `Input`), tres formularios (`Login`, `Register`, `ForgotPassword`), tres pantallas bajo `app/(auth)/*`, `AuthGuard`, root layout con guard, `(tabs)` placeholder, `App.tsx` Slot, entry de Expo Router, **build verde (`expo export` genera web/iOS/android bundles)** |
 | **Fase 2 — Navegación y Dashboard** | ✅ Completo | `NativeTabs` (4 tabs nativas: Inicio, Mascotas, Citas, Perfil) con SF Symbols iOS + Material Android; `HomeScreen` con próximas citas + CTA agendar; `ProfileScreen`, `EditProfileScreen`, `ChangePasswordScreen` con TanStack Query; hooks (`useProfile`, `usePets`, `useAppointments`, `usePublicSettings`, `useCategories`); API endpoints `pets`, `appointments`, `profile`, `public`; UI libs (`Card`, `Badge`, `Avatar`, `Section`, `AppointmentCard`, `Loading/Empty/ErrorState`); helpers (`formatDate`, `formatDateTime`, `isFuture`, `getAppointmentStatus`); build verde |
 | **Fase 3 — Mascotas y Citas** | ✅ Completo | `PetsListScreen` (FlashList + `PetCard` memoizado + pull-to-refresh), `PetDetailScreen` (detalle completo + citas próximas), `AppointmentsListScreen` (segmented control Próximas/Historial + `AppointmentRow` memoizado + FAB), `NewAppointmentScreen` (step-by-step: mascota/categoría/fecha/hora/motivo), `AppointmentDetailScreen` (detalle completo + cancelar con confirmación inline), Zod validators (`newPet`, `newAppointment`), UI components nuevos (`ScreenHeader`, `Pill`, `SelectRow`, `SegmentedControl`), `PetCard` + `AppointmentRow` memoizados con props primitivos, navegación corregida en Home y AppointmentsList; **`pnpm typecheck`, `pnpm lint` limpios; build verde** |
-| **Fase 4 — Historial Médico** | ⏳ Pendiente | — |
+| **Fase 4 — Historial Médico** | ✅ Completo | Historial médico completo con 4 secciones (registros, vacunas, desparasitación, condiciones crónicas) + navegación desde detalle de mascota |
 | **Fase 5 — Notificaciones Push** | ⏳ Pendiente | — |
 
 ---
@@ -449,12 +449,23 @@ Root (Native Stack)
 ### Fase 4: Historial Médico
 **Objetivo:** Completar funcionalidades del portal.
 
+**Estado:** ✅ **Completo** (2026-07-10)
+
 **Tareas:**
-- [ ] Implementar vista de historial médico
-- [ ] Implementar vista de vacunas
-- [ ] Implementar vista de desparasitación
-- [ ] Implementar vista de condiciones crónicas
-- [ ] **Commit:** `(feat) Fase 4: Historial Médico`
+- [x] Implementar vista de historial médico (`app/medical-records/[petId]/index.tsx`)
+- [x] Implementar vista de vacunas (`app/medical-records/[petId]/vaccinations.tsx`)
+- [x] Implementar vista de desparasitación (`app/medical-records/[petId]/deworming.tsx`)
+- [x] Implementar vista de condiciones crónicas (`app/medical-records/[petId]/chronic-conditions.tsx`)
+- [x] Tipos TypeScript (`src/types/medicalRecord.ts`)
+- [x] API endpoints (`src/api/medicalRecords.ts`)
+- [x] Hooks TanStack Query (`src/hooks/useMedicalRecords.ts`)
+- [x] Actualizar PetDetailScreen con enlace real al historial médico
+- [ ] **Commit:** `(feat) Fase 4: Historial Médico` — pendiente a la decisión del usuario
+
+**Notas técnicas relevantes:**
+1. **Navegación estructurada:** `/medical-records/[petId]/` con 4 sub-pantallas accesibles desde la pantalla principal.
+2. **Tipos completos:** `MedicalRecord`, `Vaccination`, `Deworming`, `ChronicCondition` con sus tipos de respuesta (`*ListResponse`).
+3. **Validación de calidad:** `pnpm typecheck` ✅, `pnpm lint` (0 warnings) ✅, build (web + android bundles generados antes de timeout).
 
 ### Fase 5: Notificaciones Push (Infraestructura)
 **Objetivo:** Preparar infraestructura de notificaciones.
