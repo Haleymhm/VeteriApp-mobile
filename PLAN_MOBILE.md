@@ -460,7 +460,7 @@ Root (Native Stack)
 - [x] API endpoints (`src/api/medicalRecords.ts`)
 - [x] Hooks TanStack Query (`src/hooks/useMedicalRecords.ts`)
 - [x] Actualizar PetDetailScreen con enlace real al historial médico
-- [ ] **Commit:** `(feat) Fase 4: Historial Médico` — pendiente a la decisión del usuario
+- [x] **Commit:** `(feat) Fase 4: Historial Médico` — pendiente a la decisión del usuario
 
 **Notas técnicas relevantes:**
 1. **Navegación estructurada:** `/medical-records/[petId]/` con 4 sub-pantallas accesibles desde la pantalla principal.
