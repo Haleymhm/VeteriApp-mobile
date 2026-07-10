@@ -178,29 +178,29 @@ export default function PetDetailScreen() {
             )}
           </Section>
 
-          {petAppointments.length > upcomingForPet.length ? (
-            <Section
-              title="Historial Médico"
-              subtitle={`${petAppointments.length - upcomingForPet.length} cita(s) pasadas o canceladas`}
+          <Section
+            title="Historial Médico"
+            subtitle={
+              petAppointments.length > upcomingForPet.length
+                ? `${petAppointments.length - upcomingForPet.length} cita(s) pasadas o canceladas`
+                : 'Consultas, vacunas y desparasitación'
+            }
+          >
+            <Pressable
+              onPress={() => router.push(`/medical-records/${petId}` as never)}
+              className="flex-row items-center justify-between rounded-xl border border-gray-200 bg-white p-4 active:bg-gray-50"
             >
-              <Pressable
-                onPress={() =>
-                  router.push(`/medical-records/${petId}` as never)
-                }
-                className="flex-row items-center justify-between rounded-xl border border-gray-200 bg-white p-4 active:bg-gray-50"
-              >
-                <View className="gap-1">
-                  <Text className="text-base font-medium text-gray-900">
-                    Ver historial médico
-                  </Text>
-                  <Text className="text-sm text-gray-500">
-                    Consultas, vacunas, desparasitación y más
-                  </Text>
-                </View>
-                <ChevronRight size={20} color="#9CA3AF" />
-              </Pressable>
-            </Section>
-          ) : null}
+              <View className="gap-1">
+                <Text className="text-base font-medium text-gray-900">
+                  Ver historial médico
+                </Text>
+                <Text className="text-sm text-gray-500">
+                  Consultas, vacunas, desparasitación y más
+                </Text>
+              </View>
+              <ChevronRight size={20} color="#9CA3AF" />
+            </Pressable>
+          </Section>
         </ScrollView>
       )}
     </View>

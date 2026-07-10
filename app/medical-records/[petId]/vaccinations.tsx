@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Syringe, Calendar, AlertCircle } from 'lucide-react-native';
@@ -106,6 +106,7 @@ export default function VaccinationsScreen() {
     isLoading: isVaccinationsLoading,
     error: vaccinationsError,
     refetch,
+    isRefetching,
   } = useVaccinations(petId);
 
   useFocusEffect(
@@ -155,7 +156,10 @@ export default function VaccinationsScreen() {
         <ScrollView
           contentContainerStyle={{ paddingBottom: 96, gap: 12, paddingHorizontal: 24 }}
           refreshControl={
-            <View /> // RefreshControl not available without FlatList
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => refetch()}
+            />
           }
         >
           <Text className="pb-2 text-xs text-gray-500">

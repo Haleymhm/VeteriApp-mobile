@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import { Bug, Calendar, Check } from 'lucide-react-native';
@@ -110,6 +110,7 @@ export default function DewormingScreen() {
     isLoading: isDewormingLoading,
     error: dewormingError,
     refetch,
+    isRefetching,
   } = useDeworming(petId);
 
   useFocusEffect(
@@ -158,6 +159,12 @@ export default function DewormingScreen() {
       ) : (
         <ScrollView
           contentContainerStyle={{ paddingBottom: 96, gap: 12, paddingHorizontal: 24 }}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={() => refetch()}
+            />
+          }
         >
           <Text className="pb-2 text-xs text-gray-500">
             {dewormings.length === 1
