@@ -1,6 +1,6 @@
 # VeteriApp Mobile
 
-App móvil nativa (iOS / Android) del **Portal del Cliente** de [VeteriApp](https://github.com/anomalyco/VeteriApp), construida con **React Native + Expo SDK 57**. Permite a los dueños de mascotas gestionar sus citas, ver el historial médico de sus mascotas y editar su perfil desde cualquier lugar.
+App móvil nativa (iOS / Android) del **Portal del Cliente** de [VeteriApp](https://github.com/haleymhm/Gestion-citas), construida con **React Native + Expo SDK 57**. Permite a los dueños de mascotas gestionar sus citas, ver el historial médico de sus mascotas y editar su perfil desde cualquier lugar.
 
 > Repositorio único: `veteriApp-mobile` · Gestor de paquetes: **pnpm** · Estado: Fase 1 y Fase 2 ✅ completas (build verde en web/iOS/Android)
 
