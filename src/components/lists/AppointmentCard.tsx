@@ -6,7 +6,7 @@ import { formatDateTime, getAppointmentStatus, isFuture } from '@/lib/formatDate
 import { cn } from '@/lib/cn';
 import type { Appointment } from '@/types';
 
-interface AppointmentCardProps {
+export interface AppointmentCardProps {
   appointment: Appointment;
   showStatus?: boolean;
 }

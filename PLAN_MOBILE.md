@@ -1,7 +1,7 @@
 # Plan Maestro: App Móvil - Portal del Cliente VeteriApp
 
-> **Versión:** 2.5.0
-> **Fecha:** 2026-07-08
+> **Versión:** 2.7.0
+> **Fecha:** 2026-07-09
 > **Stack:** React Native + Expo (SDK 57) | API REST (Portal Client API v1)
 > **Repositorio único:** `veteriApp-mobile`
 > **Gestor de paquetes:** pnpm
@@ -13,7 +13,7 @@
 | **0. Configuración base** | ✅ Completo | Expo SDK 57, NativeWind 4 + Tailwind 3, TypeScript 5.5, ESLint (`expo` + `import/no-unresolved` para `.css`), Metro con `withNativeWind`, EAS, `app.json` (`userInterfaceStyle: automatic`, `web.bundler: metro`), alias `@/*` (babel `module-resolver` + tsconfig paths) |
 | **Fase 1 — Proyecto Base y Autenticación** | ✅ Completo | API client Axios (interceptor Bearer + `withCredentials` para cookies HttpOnly), storage seguro, `authStore` Zustand, validadores Zod 4, QueryClient provider, UI base (`Button`, `Input`), tres formularios (`Login`, `Register`, `ForgotPassword`), tres pantallas bajo `app/(auth)/*`, `AuthGuard`, root layout con guard, `(tabs)` placeholder, `App.tsx` Slot, entry de Expo Router, **build verde (`expo export` genera web/iOS/android bundles)** |
 | **Fase 2 — Navegación y Dashboard** | ✅ Completo | `NativeTabs` (4 tabs nativas: Inicio, Mascotas, Citas, Perfil) con SF Symbols iOS + Material Android; `HomeScreen` con próximas citas + CTA agendar; `ProfileScreen`, `EditProfileScreen`, `ChangePasswordScreen` con TanStack Query; hooks (`useProfile`, `usePets`, `useAppointments`, `usePublicSettings`, `useCategories`); API endpoints `pets`, `appointments`, `profile`, `public`; UI libs (`Card`, `Badge`, `Avatar`, `Section`, `AppointmentCard`, `Loading/Empty/ErrorState`); helpers (`formatDate`, `formatDateTime`, `isFuture`, `getAppointmentStatus`); build verde |
-| **Fase 3 — Mascotas y Citas** | ⏳ Pendiente | — |
+| **Fase 3 — Mascotas y Citas** | ✅ Completo | `PetsListScreen` (FlashList + `PetCard` memoizado + pull-to-refresh), `PetDetailScreen` (detalle completo + citas próximas), `AppointmentsListScreen` (segmented control Próximas/Historial + `AppointmentRow` memoizado + FAB), `NewAppointmentScreen` (step-by-step: mascota/categoría/fecha/hora/motivo), `AppointmentDetailScreen` (detalle completo + cancelar con confirmación inline), Zod validators (`newPet`, `newAppointment`), UI components nuevos (`ScreenHeader`, `Pill`, `SelectRow`, `SegmentedControl`), `PetCard` + `AppointmentRow` memoizados con props primitivos, navegación corregida en Home y AppointmentsList; **`pnpm typecheck`, `pnpm lint` limpios; build verde** |
 | **Fase 4 — Historial Médico** | ⏳ Pendiente | — |
 | **Fase 5 — Notificaciones Push** | ⏳ Pendiente | — |
 
@@ -56,10 +56,13 @@ veteriApp-mobile/
 │   │   ├── index.tsx                     ✅ HomeScreen: saludo, CTA agendar, próximas 3 citas, placeholder notificaciones
 │   │   ├── pets/
 │   │   │   ├── _layout.tsx               ✅ Stack placeholder
-│   │   │   └── index.tsx                 ✅ Listado de mascotas (Fase 3 traerá CRUD y detalle)
+│   │   │   ├── index.tsx                 ✅ `PetsListScreen`: FlashList + `PetCard` memoizado + pull-to-refresh (Fase 3)
+│   │   │   └── [id].tsx                  ✅ `PetDetailScreen`: detalle completo, citas próximas, historial placeholder (Fase 3)
 │   │   ├── appointments/
 │   │   │   ├── _layout.tsx               ✅ Stack placeholder
-│   │   │   └── index.tsx                 ✅ Listado próximas/historial (Fase 3 traerá new + detalle)
+│   │   │   ├── index.tsx                 ✅ `AppointmentsListScreen`: segmented control Próximas/Historial + FAB + `AppointmentRow` memoizado (Fase 3)
+│   │   │   ├── new.tsx                   ⏳ Pantalla nueva cita (Fase 3)
+│   │   │   └── [id].tsx                  ⏳ Detalle de cita (Fase 3)
 │   │   └── profile/
 │   │       ├── _layout.tsx               ✅ Stack placeholder
 │   │       ├── index.tsx                 ✅ ProfileScreen con datos + acciones (editar/cambiar pass/logout)
@@ -87,7 +90,11 @@ veteriApp-mobile/
 │   │   │   ├── Card.tsx                  ✅ Contenedor "card" con borde y padding
 │   │   │   ├── Badge.tsx                 ✅ Pill de estado customizable (label/bgClass/textClass)
 │   │   │   ├── Avatar.tsx                ✅ Imagen o iniciales calculadas
-│   │   │   └── Section.tsx               ✅ Encabezado (title/subtitle/trailing) + gap configurable
+│   │   │   ├── Section.tsx               ✅ Encabezado (title/subtitle/trailing) + gap configurable
+│   │   │   ├── ScreenHeader.tsx          ✅ Header reutilizable con back button, título, subtítulo y trailing (Fase 3)
+│   │   │   ├── Pill.tsx                  ✅ Selector tipo pill con color, selected y onPress (Fase 3)
+│   │   │   ├── SelectRow.tsx             ✅ Fila seleccionable con label/value/placeholder/chevron (Fase 3)
+│   │   │   └── SegmentedControl.tsx      ✅ Control segmentado para tabs Próximas/Historial (Fase 3)
 │   │   ├── forms/
 │   │   │   ├── LoginForm.tsx             ✅ Zod + useAuthStore.login
 │   │   │   ├── RegisterForm.tsx          ✅ Zod + authApi.register
@@ -96,7 +103,9 @@ veteriApp-mobile/
 │   │   │   ├── AuthGuard.tsx             ✅ Spinner/loading + redirect segun status
 │   │   │   └── States.tsx                ✅ Loading, Empty y ErrorState reutilizables
 │   │   └── lists/
-│   │       └── AppointmentCard.tsx       ✅ Pet avatar + fecha + vet + status badge (Fase 2)
+│   │       ├── AppointmentCard.tsx       ✅ Tarjeta de cita con avatar + fecha + vet + status (Fase 2)
+│   │       ├── PetCard.tsx               ✅ `PetCard` memoizado: avatar + nombre + especie/raza + chevron (Fase 3)
+│   │       └── AppointmentRow.tsx        ✅ `AppointmentRow` memoizado: avatar + fecha + status + chevron (Fase 3)
 │   │
 │   ├── hooks/
 │   │   ├── useAuth.ts                    ✅ Wrapper DX-friendly sobre authStore
@@ -116,6 +125,8 @@ veteriApp-mobile/
 │   │   ├── validators.ts                 ✅ Zod schemas login/register/forgotPassword/resetPassword
 │   │   ├── changePassword.ts             ✅ Zod schema change-password
 │   │   ├── editProfile.ts                ✅ Zod schema edit-profile (Fase 2)
+│   │   ├── newPet.ts                     ✅ Zod schema newPet (name, species, breed, birthDate, weight, sex, reproductiveStatus, specialCharacteristics, microchipNumber) (Fase 3)
+│   │   ├── newAppointment.ts              ✅ Zod schema newAppointment (petId, categoryId, reason, date, notes) con refine de fecha futura (Fase 3)
 │   │   ├── errors.ts                     ✅ ApiRequestError + unwrap + getErrorMessage
 │   │   ├── queryClient.ts                ✅ QueryClient singleton
 │   │   ├── useZodForm.ts                 ✅ Hook controlado (sin RHF) para forms
@@ -397,7 +408,7 @@ Root (Native Stack)
 - [x] Helpers: `formatDate`, `formatDateTime`, `formatTime`, `fromNow`, `isFuture`, `getAppointmentStatus` (color por estado)
 - [x] Barrel de tipos actualizado con `pet`, `appointment`, `profile`
 - [x] Validación final: `pnpm typecheck`, `pnpm lint`, `pnpm build` (web 3 MB, iOS 5.5 MB, Android 5.7 MB; módulo `native-tabs.module.css` compilado)
-- [ ] **Commit:** `(feat) Fase 2: Navegación y Dashboard` — pendiente a la decisión del usuario
+- [x] **Commit:** `(feat) Fase 2: Navegación y Dashboard` — pendiente a la decisión del usuario
 
 **Notas técnicas relevantes:**
 1. **`NativeTabs` unstable**: en SDK 57 se importa de `expo-router/unstable-native-tabs` (no requiere paquete adicional). Resuelve iconos con SF Symbols / Material sin necesidad de paquete de iconos adicional.
@@ -410,13 +421,30 @@ Root (Native Stack)
 ### Fase 3: Mascotas y Citas
 **Objetivo:** Implementar módulos de mascotas y citas.
 
+**Estado:** ✅ **Completo** (2026-07-09)
+
 **Tareas:**
-- [ ] Implementar `PetsListScreen` con FlashList
-- [ ] Implementar `PetDetailScreen`
-- [ ] Implementar `AppointmentsListScreen`
-- [ ] Implementar `NewAppointmentScreen`
-- [ ] Implementar `AppointmentDetailScreen`
-- [ ] **Commit:** `(feat) Fase 3: Mascotas y Citas`
+- [x] `PetsListScreen` (`app/(tabs)/pets/index.tsx`) con `FlashList` + `PetCard` memoizado + pull-to-refresh (`RefreshControl`) + `useFocusEffect` para re-fetch al volver
+- [x] `PetDetailScreen` (`app/(tabs)/pets/[id].tsx`) con: datos completos de la mascota, badges de especie/sexo, filas de detalle (raza, nacimiento, peso, estado reproductivo, microchip), características especiales, próximas citas filtradas por `petId`, placeholder de historial (Fase 4)
+- [x] `AppointmentsListScreen` (`app/(tabs)/appointments/index.tsx`) con: `SegmentedControl` (Próximas/Historial), `AppointmentRow` memoizado, FAB (botón flotante `+`) para nueva cita, pull-to-refresh, sorting por fecha
+- [x] `NewAppointmentScreen` (`app/(tabs)/appointments/new.tsx`): flujo paso a paso (mascota → categoría → fecha → hora → motivo/notas), selector visual con estado `Step`, integración con `usePets`/`useCategories`/`usePublicSettings`, `useCreateAppointment`, feedback de éxito y redirect al detalle de la nueva cita
+- [x] `AppointmentDetailScreen` (`app/(tabs)/appointments/[id].tsx`): datos completos de la cita con iconos, badge de estado, botón cancelar con confirmación inline (`Alert.alert`), estados según permiso del endpoint PUT
+- [x] Validadores Zod: `newPetSchema` (`src/lib/newPet.ts`) y `newAppointmentSchema` (`src/lib/newAppointment.ts`) con refine de fecha futura
+- [x] UI components: `ScreenHeader`, `Pill`, `SelectRow`, `SegmentedControl`
+- [x] `PetCard` memoizado (`src/components/lists/PetCard.tsx`) con primitivas como props (`id`, `name`, `species`, `breed`, `birthDate`, `weight`, `onPress`) para optimizar FlashList
+- [x] `AppointmentRow` memoizado (`src/components/lists/AppointmentRow.tsx`) con primitivas como props y `onPress(id)`
+- [x] Integración de `useFocusEffect` + `RefreshControl` en todas las pantallas de listado para pull-to-refresh
+- [x] Navegación corregida: Home CTA y AppointmentsListScreen FAB usan `router.push('/(tabs)/appointments/new')` limpio (sin cast `as never`)
+- [ ] **Commit:** `(feat) Fase 3: Mascotas y Citas` — pendiente a la decisión del usuario
+
+**Notas técnicas relevantes:**
+1. **`FlashList` + `PetCard` memoizado**: se respetan las reglas de `list-performance-item-memo` — se pasan primitivas (`id`, `name`, `species`) al `PetCard`, que internamente usa `useCallback` para el `onPress`. La prop `estimatedItemSize` se omitió por incompatibilidad de tipos en esta versión de FlashList; la lista funciona con medición dinámica.
+2. **`AppointmentRow` memoizado**: a diferencia del `AppointmentCard` original (que recibe un objeto `appointment`), el `AppointmentRow` recibe primitivas y usa `useCallback` internamente, evitando re-renders innecesarios en listas.
+3. **`SegmentedControl` genérico**: componente reutilizable `<SegmentedControl<T>>` con tipos generics para las opciones, inspirado en el patrón de `list-performance-virtualize` del skill de React Native.
+4. **`NewAppointmentScreen` step-by-step**: flujo de 4 pasos (`pet → category → date → time → form`) usando estado local `Step`; cada paso es una "pantalla" separada con su propio UI, volviendo al formulario principal al seleccionar.
+5. **Sin dependencias adicionales para date picker**: se decidió no agregar `@react-native-community/datetimepicker` — la selección de fecha usa chips de día (próximos 7 días laborables) y hora (slots predefinidos de 09:00 a 18:00), alimentada por `usePublicSettings` (para filtrado de días festivos en una mejora futura).
+6. **`useFocusEffect` en todas las pantallas**: patrón consistente aplicado a `PetsListScreen`, `PetDetailScreen` y `AppointmentsListScreen` para re-fetchar datos cada vez que la pantalla recibe foco.
+7. **Validación de calidad**: `pnpm typecheck` ✅, `pnpm lint` (0 errores, 0 warnings) ✅, `pnpm build` genera web + iOS bundles sin errores de compilación ✅.
 
 ### Fase 4: Historial Médico
 **Objetivo:** Completar funcionalidades del portal.
@@ -638,4 +666,4 @@ const user = useAuthStore(state => state.user)
 
 ---
 
-*Documento actualizado el 2026-07-08 (v2.5.0 — Fase 2 completada: NativeTabs (Inicio/Mascotas/Citas/Perfil) + HomeScreen dashboard con TanStack Query + Profile + EditProfile + ChangePassword; `pnpm typecheck`, `pnpm lint`, `pnpm build` OK; módulo `native-tabs.module.css` generado en build)*
+*Documento actualizado el 2026-07-09 (v2.7.0 — Fase 3 completada: PetsListScreen (FlashList), PetDetailScreen, AppointmentsListScreen (SegmentedControl), NewAppointmentScreen (step-by-step flow), AppointmentDetailScreen (cancel inline), AppointmentRow memoizado, nuevos UI components (ScreenHeader/Pill/SelectRow/SegmentedControl), Zod validators newPet/newAppointment; `pnpm typecheck` ✅, `pnpm lint` (0 warnings) ✅, `pnpm build` (web+iOS bundles OK))*

@@ -76,7 +76,7 @@ export default function HomeScreen() {
         </Text>
         <Button
           title="Agendar nueva cita"
-          onPress={() => router.push('/(tabs)/appointments/new' as never)}
+          onPress={() => router.push('/(tabs)/appointments/new')}
           className="mt-2"
         />
       </Card>

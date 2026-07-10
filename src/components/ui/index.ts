@@ -4,3 +4,7 @@ export { Card } from './Card';
 export { Badge, type BadgeProps } from './Badge';
 export { Avatar, type AvatarProps } from './Avatar';
 export { Section, type SectionProps } from './Section';
+export { ScreenHeader, type ScreenHeaderProps } from './ScreenHeader';
+export { SelectRow, type SelectRowProps } from './SelectRow';
+export { Pill, type PillProps } from './Pill';
+export { SegmentedControl, type SegmentedControlProps, type SegmentOption } from './SegmentedControl';
