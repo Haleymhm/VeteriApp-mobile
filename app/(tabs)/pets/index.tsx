@@ -53,13 +53,13 @@ export default function PetsListScreen() {
   return (
     <View className="flex-1 px-6">
       <ScreenHeader
-        title="Mis mascotas"
-        subtitle="Toca una mascota para ver su detalle."
+        title="Mis Mascotas"
+        subtitle="Visualiza y gestiona las mascotas registradas en tu cuenta."
       />
       <FlashList
         data={pets}
         keyExtractor={(item) => String(item.id)}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <PetCard
             id={item.id}
             name={item.name}
@@ -67,6 +67,7 @@ export default function PetsListScreen() {
             breed={item.breed}
             birthDate={item.birthDate}
             weight={item.weight}
+            isActive={index === 0}
             onPress={handleOpenPet}
           />
         )}
@@ -83,10 +84,8 @@ export default function PetsListScreen() {
         }
         ListHeaderComponent={
           pets.length > 0 ? (
-            <Text className="pb-2 text-xs text-gray-500">
-              {pets.length === 1
-                ? '1 mascota registrada'
-                : `${pets.length} mascotas registradas`}
+            <Text className="pb-3 text-lg font-bold text-gray-900">
+              Tus mascotas ({pets.length})
             </Text>
           ) : null
         }

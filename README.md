@@ -2,7 +2,7 @@
 
 App móvil nativa (iOS / Android) del **Portal del Cliente** de [VeteriApp](https://github.com/haleymhm/Gestion-citas), construida con **React Native + Expo SDK 57**. Permite a los dueños de mascotas gestionar sus citas, consultar el historial médico de sus mascotas y editar su perfil desde cualquier lugar.
 
-> Repositorio único: `veteriApp-mobile` · Gestor de paquetes: **pnpm** · Estado: Fases 0–4 ✅ completas (build y lint/typecheck verdes) · Fase 5 (Push) ⏳ pendiente
+> Repositorio único: `veteriApp-mobile` · Gestor de paquetes: **pnpm** · Estado: Fases 0–5 ✅ completas (build y lint/typecheck verdes)
 
 ---
 
@@ -29,7 +29,7 @@ App móvil nativa (iOS / Android) del **Portal del Cliente** de [VeteriApp](http
 | SVG | `react-native-svg` | ^15.15.5 |
 | Safe Area | `react-native-safe-area-context` | ^5.8.0 |
 | Web | `react-native-web` | ~0.21.2 |
-| Notificaciones Push (pendiente) | `expo-notifications` | ^57.0.3 |
+| Notificaciones Push | `expo-notifications` + `expo-constants` | ^57.0.3 / ^57.0.9 |
 | Testing (infestructura) | Jest + React Native Testing Library | ^29.7.0 / ^13.3.3 |
 | Builds en la nube | EAS Build | CLI ≥ 16.0.0 |
 
@@ -213,7 +213,7 @@ La API usa **JWT en cookies HttpOnly** (no `Authorization: Bearer`). El cliente 
 | **2** | Navegación y Dashboard (NativeTabs, HomeScreen, Profile, Edit, ChangePassword, hooks Query) | ✅ |
 | **3** | Mascotas y Citas (listado FlashList, detalle mascota, nueva cita paso a paso, detalle cita con cancelación) | ✅ |
 | **4** | Historial Médico (registros médicos, vacunas, desparasitación, condiciones crónicas) | ✅ |
-| **5** | Notificaciones Push (expo-notifications, permisos, templates) | ⏳ |
+| **5** | Notificaciones Push (expo-notifications, permisos, registro de token, listener en foreground) | ✅ |
 
 Ver detalles en [`PLAN_MOBILE.md`](./PLAN_MOBILE.md).
 

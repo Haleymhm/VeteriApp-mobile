@@ -1,7 +1,7 @@
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 import { cn } from '@/lib/cn';
 
-type Variant = 'primary' | 'secondary' | 'ghost';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'outline';
 type Size = 'sm' | 'md' | 'lg';
 
 type PressEvent = Parameters<NonNullable<PressableProps['onPress']>>[0];
@@ -18,22 +18,26 @@ export interface ButtonProps extends Omit<PressableProps, 'children' | 'onPress'
 
 const variantStyles: Record<Variant, { container: string; text: string }> = {
   primary: {
-    container: 'bg-primary active:bg-primary-700',
+    container: 'bg-brand-500 active:bg-brand-600 shadow-theme-xs',
     text: 'text-white',
   },
   secondary: {
-    container: 'bg-gray-100 active:bg-gray-200 border border-gray-300',
-    text: 'text-gray-900',
+    container: 'bg-gray-100 active:bg-gray-200 border border-gray-200',
+    text: 'text-gray-700',
+  },
+  outline: {
+    container: 'bg-white active:bg-gray-50 border border-gray-300 shadow-theme-xs',
+    text: 'text-gray-700',
   },
   ghost: {
     container: 'bg-transparent active:bg-gray-100',
-    text: 'text-primary',
+    text: 'text-brand-500',
   },
 };
 
 const sizeStyles: Record<Size, { container: string; text: string }> = {
-  sm: { container: 'h-9 px-3', text: 'text-sm' },
-  md: { container: 'h-11 px-4', text: 'text-base' },
+  sm: { container: 'h-9 px-4', text: 'text-sm' },
+  md: { container: 'h-11 px-5', text: 'text-base' },
   lg: { container: 'h-14 px-6', text: 'text-lg' },
 };
 
@@ -58,7 +62,7 @@ export function Button({
       disabled={disabled || loading}
       onPress={onPress as PressableProps['onPress']}
       className={cn(
-        'flex-row items-center justify-center rounded-xl',
+        'flex-row items-center justify-center rounded-lg',
         sz.container,
         styles.container,
         fullWidth ? 'w-full' : '',
@@ -68,7 +72,7 @@ export function Button({
       {...rest}
     >
       {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? 'white' : '#1D4ED8'} />
+        <ActivityIndicator color={variant === 'primary' ? 'white' : '#465fff'} />
       ) : (
         <Text className={cn('font-semibold', sz.text, styles.text)}>{title}</Text>
       )}

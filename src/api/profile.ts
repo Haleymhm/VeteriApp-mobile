@@ -1,6 +1,12 @@
 import { apiClient } from './client';
 import { unwrap } from '@/lib/errors';
-import type { ApiResponse, Profile, ProfileUpdateInput } from '@/types';
+import type {
+  ApiResponse,
+  Profile,
+  ProfileUpdateInput,
+  PushRegistrationResponse,
+  PushTokenPayload,
+} from '@/types';
 
 export async function getProfile(): Promise<Profile> {
   const { data } = await apiClient.get<ApiResponse<Profile>>('/profile');
@@ -23,4 +29,14 @@ export async function changePassword(input: {
   if (!data.success) {
     throw new Error('error' in data ? data.error : 'No se pudo cambiar la contraseña');
   }
+}
+
+export async function registerPushToken(
+  payload: PushTokenPayload,
+): Promise<PushRegistrationResponse> {
+  const { data } = await apiClient.put<ApiResponse<PushRegistrationResponse>>(
+    '/profile/push-token',
+    payload,
+  );
+  return unwrap(data);
 }

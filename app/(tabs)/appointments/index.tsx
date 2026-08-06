@@ -4,18 +4,12 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useAppointments } from '@/hooks/useAppointments';
 import { AppointmentRow } from '@/components/lists/AppointmentRow';
-import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { SegmentedControl } from '@/components/ui/SegmentedControl';
+import { Stack } from 'expo-router';
 import { Loading, ErrorState, Empty } from '@/components/feedback/States';
 import { isFuture } from '@/lib/formatDate';
 import { getErrorMessage } from '@/lib/errors';
 
 type Tab = 'upcoming' | 'past';
-
-const TAB_OPTIONS: { value: Tab; label: string }[] = [
-  { value: 'upcoming', label: 'Próximas' },
-  { value: 'past', label: 'Historial' },
-];
 
 export default function AppointmentsListScreen() {
   const router = useRouter();
@@ -55,33 +49,59 @@ export default function AppointmentsListScreen() {
   const list = tab === 'upcoming' ? upcoming : past;
 
   return (
-    <View className="flex-1 px-6">
-      <ScreenHeader
-        title="Mis citas"
-        subtitle="Revisa tus próximas citas y el historial."
-        trailing={
+    <View className="flex-1 bg-white">
+      <Stack.Screen options={{ headerShown: false }} />
+
+      {/* Header */}
+      <View className="px-6 pt-6 pb-2">
+        <View className="flex-row items-start justify-between">
+          <View className="flex-1 gap-1 pr-4">
+            <Text className="text-2xl font-extrabold text-gray-900">Mis Citas</Text>
+            <Text className="text-sm text-gray-500">
+              Revisa el estado de tus citas agendadas
+            </Text>
+          </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Agendar nueva cita"
             onPress={handleNew}
-            hitSlop={10}
-            className="h-10 w-10 items-center justify-center rounded-full bg-primary active:bg-primary-700"
+            className="flex-row items-center gap-1.5 bg-primary rounded-xl px-4 py-2.5 active:bg-primary-700"
           >
-            <Plus size={20} color="white" />
+            <Plus size={16} color="white" />
+            <Text className="text-sm font-bold text-white">Nueva Cita</Text>
           </Pressable>
-        }
-      />
+        </View>
 
-      <View className="pb-3">
-        <SegmentedControl options={TAB_OPTIONS} value={tab} onChange={setTab} />
+        {/* Tab selector */}
+        <View className="flex-row mt-5 border-b border-gray-100">
+          {([
+            { value: 'upcoming' as Tab, label: 'Próximas Citas' },
+            { value: 'past' as Tab, label: 'Historial' },
+          ]).map((t) => {
+            const active = tab === t.value;
+            return (
+              <Pressable
+                key={t.value}
+                onPress={() => setTab(t.value)}
+                className={`pb-3 pt-1 mr-6 border-b-2 ${active ? 'border-primary' : 'border-transparent'}`}
+              >
+                <Text className={`text-sm font-bold ${active ? 'text-primary' : 'text-gray-500'}`}>
+                  {t.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       {isLoading ? (
         <Loading label="Cargando citas..." />
       ) : error ? (
-        <ErrorState message={getErrorMessage(error)} />
+        <View className="px-6">
+          <ErrorState message={getErrorMessage(error)} />
+        </View>
       ) : list.length === 0 ? (
-        <View className="pt-6">
+        <View className="px-6 pt-6">
           {tab === 'upcoming' ? (
             <Empty
               title="Sin citas próximas"
@@ -96,7 +116,7 @@ export default function AppointmentsListScreen() {
         </View>
       ) : (
         <ScrollView
-          contentContainerStyle={{ paddingBottom: 96, gap: 12 }}
+          contentContainerStyle={{ paddingBottom: 96, paddingTop: 12, gap: 12, paddingHorizontal: 16 }}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
@@ -104,10 +124,8 @@ export default function AppointmentsListScreen() {
             />
           }
         >
-          <Text className="pb-1 text-xs text-gray-500">
-            {list.length === 1
-              ? '1 cita'
-              : `${list.length} citas`}
+          <Text className="text-xs text-gray-400 pb-1 pl-2">
+            {list.length === 1 ? '1 cita' : `${list.length} citas`}
           </Text>
           {list.map((a) => {
             const vet = a.vet

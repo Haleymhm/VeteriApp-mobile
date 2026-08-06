@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View, Pressable } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppointments } from '@/hooks/useAppointments';
 import { usePets } from '@/hooks/usePets';
+import { usePushNotificationsContext } from '@/components/feedback/PushNotificationsProvider';
 import { Card } from '@/components/ui/Card';
 import { Section } from '@/components/ui/Section';
 import { Button } from '@/components/ui/Button';
@@ -11,10 +12,16 @@ import { AppointmentCard } from '@/components/lists/AppointmentCard';
 import { Empty, ErrorState, Loading } from '@/components/feedback/States';
 import { isFuture } from '@/lib/formatDate';
 import { getErrorMessage } from '@/lib/errors';
+import { formatDate } from '@/lib/formatDate';
 
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const {
+    notifications,
+    permissionStatus,
+    requestPermissions,
+  } = usePushNotificationsContext();
 
   const {
     data: appointments,
@@ -53,6 +60,8 @@ export default function HomeScreen() {
     void refetchPets();
   }
 
+  const permissionDenied = permissionStatus === 'denied';
+
   return (
     <ScrollView
       contentContainerClassName="gap-6 px-6 pb-12 pt-6"
@@ -67,7 +76,7 @@ export default function HomeScreen() {
         </Text>
       </View>
 
-      <Card className="gap-2 bg-primary/5 border-primary/20">
+      <Card className="gap-2 bg-brand-50 border-brand-100">
         <Text className="text-sm font-medium text-gray-700">Agenda rápido</Text>
         <Text className="text-xs text-gray-500">
           {petCount > 0
@@ -105,11 +114,49 @@ export default function HomeScreen() {
         )}
       </Section>
 
-      <Section title="Notificaciones" subtitle="Próximamente">
-        <Empty
-          title="Aún no hay notificaciones"
-          description="Las confirmaciones y recordatorios de tus citas aparecerán aquí."
-        />
+      <Section
+        title="Notificaciones"
+        subtitle={
+          notifications.length > 0
+            ? `${notifications.length} reciente${notifications.length === 1 ? '' : 's'}`
+            : permissionStatus === null
+              ? 'Pendiente de permisos'
+              : permissionDenied
+                ? 'Permisos desactivados'
+                : 'Sin notificaciones nuevas'
+        }
+        trailing={
+          permissionDenied ? (
+            <Pressable onPress={() => void requestPermissions()}>
+              <Text className="text-sm font-medium text-brand-500">
+                Activar
+              </Text>
+            </Pressable>
+          ) : undefined
+        }
+      >
+        {notifications.length === 0 ? (
+          <Empty
+            title="Aún no hay notificaciones"
+            description="Las confirmaciones y recordatorios de tus citas aparecerán aquí."
+          />
+        ) : (
+          notifications.map((n) => (
+            <Card key={n.id} className="gap-1">
+              <View className="flex-row items-center justify-between">
+                <Text className="text-sm font-semibold text-gray-900">
+                  {n.title}
+                </Text>
+                <Text className="text-xs text-gray-400">
+                  {formatDate(n.receivedAt)}
+                </Text>
+              </View>
+              {n.body ? (
+                <Text className="text-sm text-gray-600">{n.body}</Text>
+              ) : null}
+            </Card>
+          ))
+        )}
       </Section>
     </ScrollView>
   );

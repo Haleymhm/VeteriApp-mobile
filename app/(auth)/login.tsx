@@ -1,49 +1,50 @@
-import { useState } from 'react';
 import { ScrollView, Text, View, Pressable } from 'react-native';
 import { Link } from 'expo-router';
+import { Image } from 'expo-image';
 import { LoginForm } from '@/components/forms/LoginForm';
 
 export default function LoginScreen() {
-  const [showBanner] = useState(false);
-
   return (
     <ScrollView
-      contentContainerClassName="flex-grow justify-center px-6 py-10"
+      className="flex-1 bg-white"
+      contentContainerClassName="flex-grow justify-between px-6 py-10"
+      contentContainerStyle={{ flexGrow: 1 }}
       keyboardShouldPersistTaps="handled"
     >
-      <View className="mb-10 items-center">
-        <Text className="text-4xl font-bold text-primary">VeteriApp</Text>
-        <Text className="mt-2 text-base text-gray-600">
-          Portal del Cliente
-        </Text>
-      </View>
+      <View className="flex-1 justify-center">
+        <View className="mb-8 items-center">
+          <Image
+            source={require('../../assets/logo.png')}
+            style={{ width: 140, height: 140 }}
+            contentFit="contain"
+          />
+        </View>
 
-      <Text className="mb-6 text-center text-2xl font-bold text-gray-900">
-        Iniciar sesión
-      </Text>
+        <View className="mb-8 items-center">
+          <Text className="text-3xl font-bold text-gray-900 text-center">Iniciar Sesión</Text>
+          <Text className="mt-2 text-base text-gray-500 text-center">
+            Ingresa tus credenciales para acceder al sistema
+          </Text>
+        </View>
 
-      <LoginForm />
+        <LoginForm />
 
-      <View className="mt-8 items-center gap-3">
-        <Link href="/(auth)/forgot-password" asChild>
-          <Pressable>
-            <Text className="text-sm font-medium text-primary">
-              ¿Olvidaste tu contraseña?
-            </Text>
-          </Pressable>
-        </Link>
-        <View className="flex-row gap-1">
+        <View className="mt-8 flex-row items-center justify-center gap-1">
           <Text className="text-sm text-gray-600">¿No tienes cuenta?</Text>
           <Link href="/(auth)/register" asChild>
-            <Pressable>
-              <Text className="text-sm font-semibold text-primary">
+            <Pressable className="active:opacity-70">
+              <Text className="text-sm font-semibold text-brand-500">
                 Regístrate
               </Text>
             </Pressable>
           </Link>
         </View>
       </View>
-      {showBanner ? null : null}
+
+      <View className="mt-8 items-center gap-1 py-4">
+        <Text className="text-xs text-gray-400 font-medium">v1.0.0</Text>
+        <Text className="text-xs text-gray-400">coprigth HidalgoWeb</Text>
+      </View>
     </ScrollView>
   );
 }

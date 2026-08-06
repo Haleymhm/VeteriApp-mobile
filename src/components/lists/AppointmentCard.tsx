@@ -1,8 +1,8 @@
 import { View, Text } from 'react-native';
 import { Card } from '@/components/ui/Card';
-import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
-import { formatDateTime, getAppointmentStatus, isFuture } from '@/lib/formatDate';
+import { Check } from 'lucide-react-native';
+import { formatFullDateTime, getAppointmentStatus } from '@/lib/formatDate';
 import { cn } from '@/lib/cn';
 import type { Appointment } from '@/types';
 
@@ -20,39 +20,74 @@ export function AppointmentCard({
   const vet = appointment.vet
     ? `Dr. ${appointment.vet.firstName} ${appointment.vet.lastName}`.trim()
     : null;
-  const future = isFuture(appointment.date);
+  const isConfirmed = appointment.status === 'CONFIRMED' || appointment.status === 'COMPLETED';
+
+  const cardTitle = appointment.category?.name || 'Consulta general';
+  const bottomContent = appointment.reason || appointment.notes || '.';
 
   return (
-    <Card className="gap-3">
-      <View className="flex-row items-center gap-3">
-        <Avatar name={petName} />
+    <Card className="gap-3 p-4 bg-white border border-gray-200 rounded-2xl">
+      <View className="flex-row items-start gap-3">
+        {/* Checkmark status indicator */}
+        <View
+          className={cn(
+            'h-6 w-6 items-center justify-center rounded-md mt-1',
+            isConfirmed ? 'bg-success-500' : 'bg-gray-300'
+          )}
+        >
+          <Check size={16} color="white" strokeWidth={3} />
+        </View>
+
+        {/* Content info */}
         <View className="flex-1 gap-1">
-          <Text className="text-base font-semibold text-gray-900">
-            {petName}
-            {appointment.category?.name ? (
-              <Text className="font-normal text-gray-500">
-                {' · '}
-                {appointment.category.name}
-              </Text>
-            ) : null}
+          <Badge
+            label={appointment.category?.name || 'Consulta Veterinaria'}
+            bgClass="bg-blue-light-25 border border-blue-light-500/10"
+            textClass="text-blue-light-500"
+            className="mb-1"
+          />
+
+          <Text className="text-base font-bold text-gray-900">
+            {cardTitle}
           </Text>
-          <Text className={cn('text-sm', future ? 'text-primary' : 'text-gray-600')}>
-            {formatDateTime(appointment.date)}
+
+          <Text className="text-sm text-gray-600">
+            Mascota: <Text className="font-semibold text-gray-800">{petName}</Text>
           </Text>
+
+          <Text className="text-sm text-gray-500">
+            {formatFullDateTime(appointment.date)}
+          </Text>
+
           {vet ? (
-            <Text className="text-xs text-gray-500">{vet}</Text>
+            <Text className="text-sm text-gray-500">
+              Veterinario: <Text className="font-medium text-gray-700">{vet}</Text>
+            </Text>
           ) : null}
         </View>
+
+        {/* Status Badge */}
         {showStatus ? (
-          <Badge label={status.label} bgClass={status.bg} textClass={status.text} />
+          <Badge
+            label={status.label}
+            bgClass={cn(
+              status.bg,
+              appointment.status === 'CONFIRMED' ? 'bg-success-500/10' : ''
+            )}
+            textClass={cn(
+              status.text,
+              appointment.status === 'CONFIRMED' ? 'text-success-500' : ''
+            )}
+          />
         ) : null}
       </View>
-      {appointment.reason ? (
-        <Text className="text-sm text-gray-700">{appointment.reason}</Text>
-      ) : null}
-      {appointment.notes ? (
-        <Text className="text-xs text-gray-500">{appointment.notes}</Text>
-      ) : null}
+
+      {/* Reason / Notes container */}
+      <View className="rounded-lg bg-gray-50 p-3 mt-1">
+        <Text className="text-sm text-gray-700 leading-normal">
+          {bottomContent}
+        </Text>
+      </View>
     </Card>
   );
 }

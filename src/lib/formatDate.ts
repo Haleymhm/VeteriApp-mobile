@@ -1,4 +1,4 @@
-import { format, formatDistanceToNow, parseISO, isAfter } from 'date-fns';
+import { format, formatDistanceToNow, parseISO, isAfter, differenceInYears, differenceInMonths } from 'date-fns';
 import { es } from 'date-fns/locale';
 import type { AppointmentStatus } from '@/types';
 
@@ -9,6 +9,28 @@ export function formatDate(iso: string | Date, pattern = 'dd MMM yyyy'): string 
 
 export function formatDateTime(iso: string | Date): string {
   return formatDate(iso, "dd MMM yyyy · HH:mm 'hrs'");
+}
+
+export function formatFullDateTime(iso: string | Date): string {
+  // Let's capitalize the first letter of the formatted day (e.g. Lunes instead of lunes)
+  const formatted = formatDate(iso, "EEEE, d 'de' MMMM 'de' yyyy, H:mm");
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+}
+
+export function calculateAge(iso: string | Date): string {
+  const date = typeof iso === 'string' ? parseISO(iso) : iso;
+  const now = new Date();
+  
+  const years = differenceInYears(now, date);
+  const months = differenceInMonths(now, date) % 12;
+  
+  const yearsStr = years > 0 ? `${years} ${years === 1 ? 'año' : 'años'}` : '';
+  const monthsStr = months > 0 ? `${months} ${months === 1 ? 'mes' : 'meses'}` : '';
+  
+  if (yearsStr && monthsStr) {
+    return `${yearsStr} ${monthsStr}`;
+  }
+  return yearsStr || monthsStr || 'Menos de un mes';
 }
 
 export function formatTime(iso: string | Date): string {

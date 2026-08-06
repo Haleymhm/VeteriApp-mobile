@@ -58,6 +58,7 @@ export function RegisterForm() {
           error={errors.firstName}
           editable={!isSubmitting}
           containerClassName="flex-1"
+          required
         />
         <Input
           label="Apellido"
@@ -68,6 +69,7 @@ export function RegisterForm() {
           error={errors.lastName}
           editable={!isSubmitting}
           containerClassName="flex-1"
+          required
         />
       </View>
       <Input
@@ -80,6 +82,7 @@ export function RegisterForm() {
         onChangeText={(t) => setValue('email', t)}
         error={errors.email}
         editable={!isSubmitting}
+        required
       />
       <Input
         label="Contraseña"
@@ -91,6 +94,7 @@ export function RegisterForm() {
         onChangeText={(t) => setValue('password', t)}
         error={errors.password}
         editable={!isSubmitting}
+        required
       />
       <Input
         label="Repetir contraseña"
@@ -102,6 +106,7 @@ export function RegisterForm() {
         onChangeText={(t) => setValue('confirmPassword', t)}
         error={errors.confirmPassword}
         editable={!isSubmitting}
+        required
       />
       <Button
         title="Crear cuenta"

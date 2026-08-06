@@ -1,11 +1,10 @@
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 
 export default function AuthLayout() {
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white">
       <StatusBar style="auto" />
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -22,6 +21,6 @@ export default function AuthLayout() {
           <Stack.Screen name="forgot-password" />
         </Stack>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }

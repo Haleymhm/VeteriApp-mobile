@@ -35,6 +35,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         set({ token: storedToken, user: parsedUser, status: 'authenticated', error: null });
         return;
       }
+      // Si no hay token guardado, no intentamos getSession: el backend no tendrá
+      // cookie que validar y solo añadiría latencia (o un colgado si está caído).
+      if (!storedToken) {
+        set({ status: 'unauthenticated' });
+        return;
+      }
       const session = await authApi.getSession();
       if (session) {
         const user: AuthUser = {
@@ -44,7 +50,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
           lastName: session.lastName,
           role: session.role,
         };
-        set({ user, token: storedToken ?? 'cookie', status: 'authenticated', error: null });
+        set({ user, token: storedToken, status: 'authenticated', error: null });
         await setSecureItem(STORAGE_KEYS.authUser, JSON.stringify(user));
       } else {
         set({ status: 'unauthenticated' });
@@ -79,6 +85,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     await Promise.all([
       deleteSecureItem(STORAGE_KEYS.authToken),
       deleteSecureItem(STORAGE_KEYS.authUser),
+      deleteSecureItem(STORAGE_KEYS.pushToken),
     ]);
     set({ user: null, token: null, status: 'unauthenticated', error: null });
   },

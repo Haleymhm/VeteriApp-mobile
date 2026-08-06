@@ -1,13 +1,11 @@
 import { memo, useCallback } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Avatar } from '@/components/ui/Avatar';
+import { Check, ChevronRight } from 'lucide-react-native';
 import { Badge } from '@/components/ui/Badge';
 import { Card } from '@/components/ui/Card';
-import { ChevronRight } from 'lucide-react-native';
 import {
-  formatDateTime,
+  formatFullDateTime,
   getAppointmentStatus,
-  isFuture,
 } from '@/lib/formatDate';
 import { cn } from '@/lib/cn';
 import type { AppointmentStatus } from '@/types';
@@ -38,7 +36,10 @@ function AppointmentRowBase({
   const handlePress = useCallback(() => onPress?.(id), [id, onPress]);
 
   const statusInfo = getAppointmentStatus(status);
-  const future = isFuture(date);
+  const isConfirmed = status === 'CONFIRMED' || status === 'COMPLETED';
+
+  const cardTitle = categoryName || 'Consulta general';
+  const bottomContent = reason || notes || '.';
 
   return (
     <Pressable
@@ -47,53 +48,69 @@ function AppointmentRowBase({
       onPress={handlePress}
       className="active:opacity-90"
     >
-      <Card className="gap-3">
-        <View className="flex-row items-center gap-3">
-          <Avatar name={petName} />
+      <Card className="gap-3 p-4 bg-white border border-gray-200 rounded-2xl">
+        <View className="flex-row items-start gap-3">
+          {/* Checkmark status indicator */}
+          <View
+            className={cn(
+              'h-6 w-6 items-center justify-center rounded-md mt-1',
+              isConfirmed ? 'bg-success-500' : 'bg-gray-300'
+            )}
+          >
+            <Check size={16} color="white" strokeWidth={3} />
+          </View>
+
+          {/* Content info */}
           <View className="flex-1 gap-1">
-            <Text
-              className="text-base font-semibold text-gray-900"
-              numberOfLines={1}
-            >
-              {petName}
-              {categoryName ? (
-                <Text className="font-normal text-gray-500">
-                  {' · '}
-                  {categoryName}
-                </Text>
-              ) : null}
+            <Badge
+              label={categoryName || 'Consulta Veterinaria'}
+              bgClass="bg-blue-light-25 border border-blue-light-500/10"
+              textClass="text-blue-light-500"
+              className="mb-1"
+            />
+
+            <Text className="text-base font-bold text-gray-900">
+              {cardTitle}
             </Text>
-            <Text
-              className={cn(
-                'text-sm',
-                future ? 'text-primary' : 'text-gray-600',
-              )}
-            >
-              {formatDateTime(date)}
+
+            <Text className="text-sm text-gray-600">
+              Mascota: <Text className="font-semibold text-gray-800">{petName}</Text>
             </Text>
+
+            <Text className="text-sm text-gray-500">
+              {formatFullDateTime(date)}
+            </Text>
+
             {vetName ? (
-              <Text className="text-xs text-gray-500" numberOfLines={1}>
-                {vetName}
+              <Text className="text-sm text-gray-500">
+                Veterinario: <Text className="font-medium text-gray-700">{vetName}</Text>
               </Text>
             ) : null}
           </View>
-          <Badge
-            label={statusInfo.label}
-            bgClass={statusInfo.bg}
-            textClass={statusInfo.text}
-          />
-          <ChevronRight size={18} color="#9CA3AF" />
+
+          {/* Status Badge and arrow */}
+          <View className="items-end gap-2">
+            <Badge
+              label={statusInfo.label}
+              bgClass={cn(
+                statusInfo.bg,
+                status === 'CONFIRMED' ? 'bg-success-500/10' : ''
+              )}
+              textClass={cn(
+                statusInfo.text,
+                status === 'CONFIRMED' ? 'text-success-500' : ''
+              )}
+            />
+            <ChevronRight size={18} color="#9CA3AF" />
+          </View>
         </View>
-        {reason ? (
-          <Text className="text-sm text-gray-700" numberOfLines={2}>
-            {reason}
+
+        {/* Reason / Notes container */}
+        <View className="rounded-lg bg-gray-50 p-3 mt-1">
+          <Text className="text-sm text-gray-700 leading-normal">
+            {bottomContent}
           </Text>
-        ) : null}
-        {notes ? (
-          <Text className="text-xs text-gray-500" numberOfLines={2}>
-            {notes}
-          </Text>
-        ) : null}
+        </View>
       </Card>
     </Pressable>
   );

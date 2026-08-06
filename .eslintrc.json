@@ -2,7 +2,8 @@
   "extends": ["expo"],
   "rules": {
     "react/display-name": "off",
-    "import/no-unresolved": ["error", { "ignore": ["\\.css$"] }]
+    "import/no-unresolved": ["error", { "ignore": ["\\.css$"] }],
+    "react-hooks/set-state-in-effect": "off"
   },
   "ignorePatterns": [
     "dist/",
