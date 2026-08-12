@@ -1,5 +1,5 @@
 import { View, Text, Pressable } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, router } from 'expo-router';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { useZodForm } from '@/lib/useZodForm';
@@ -19,6 +19,7 @@ export function LoginForm() {
 
   async function onSubmit(v: LoginFormValues) {
     await login(v.email, v.password);
+    router.replace('/(tabs)');
   }
 
   const submit = handleSubmit(onSubmit);

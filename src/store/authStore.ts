@@ -31,13 +31,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         getSecureItem(STORAGE_KEYS.authUser),
       ]);
       const parsedUser = storedUser ? (JSON.parse(storedUser) as AuthUser) : null;
-      if (storedToken && parsedUser) {
+      if (storedToken && storedToken !== 'cookie' && parsedUser) {
         set({ token: storedToken, user: parsedUser, status: 'authenticated', error: null });
         return;
       }
-      // Si no hay token guardado, no intentamos getSession: el backend no tendrá
-      // cookie que validar y solo añadiría latencia (o un colgado si está caído).
-      if (!storedToken) {
+      if (!storedToken || storedToken === 'cookie') {
+        await Promise.all([
+          deleteSecureItem(STORAGE_KEYS.authToken),
+          deleteSecureItem(STORAGE_KEYS.authUser),
+        ]);
         set({ status: 'unauthenticated' });
         return;
       }
@@ -63,11 +65,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   async login(email, password) {
     set({ status: 'loading', error: null });
     try {
-      const user = await authApi.login({ email, password });
-      await setSecureItem(STORAGE_KEYS.authToken, 'cookie');
-      await setSecureItem(STORAGE_KEYS.authUser, JSON.stringify(user));
-      set({ user, token: 'cookie', status: 'authenticated', error: null });
-      return user;
+      const res = await authApi.login({ email, password });
+      const authToken = res.token || 'cookie';
+      await setSecureItem(STORAGE_KEYS.authToken, authToken);
+      await setSecureItem(STORAGE_KEYS.authUser, JSON.stringify(res.user));
+      set({ user: res.user, token: authToken, status: 'authenticated', error: null });
+      return res.user;
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'No se pudo iniciar sesión';

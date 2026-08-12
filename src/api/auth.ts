@@ -8,11 +8,15 @@ import type {
   SessionResponse,
 } from '@/types';
 
-export async function login(input: LoginInput): Promise<AuthUser> {
-  const { data } = await apiClient.post<ApiResponse<{ user: AuthUser }>>(
-    '/auth/login',
-    input,
-  );
+export interface LoginResult {
+  user: AuthUser;
+  token?: string;
+}
+
+export async function login(input: LoginInput): Promise<LoginResult> {
+  const { data } = await apiClient.post<
+    ApiResponse<{ user: AuthUser; token?: string; accessToken?: string }>
+  >('/auth/login', input);
   if (!data.success) {
     const errorMessage =
       'error' in data && typeof data.error === 'string'
@@ -23,7 +27,8 @@ export async function login(input: LoginInput): Promise<AuthUser> {
   if (!data.data) {
     throw new ApiRequestError('No se pudo iniciar sesión');
   }
-  return data.data.user;
+  const token = data.data.token ?? data.data.accessToken;
+  return { user: data.data.user, token };
 }
 
 export async function logout(): Promise<void> {

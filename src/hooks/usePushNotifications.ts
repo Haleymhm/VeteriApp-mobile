@@ -35,6 +35,7 @@ export function usePushNotifications(enabled: boolean): UsePushNotificationsResu
 
   const registerToken = useCallback(async () => {
     if (isRegistering.current) return;
+    if (Platform.OS === 'web') return;
     isRegistering.current = true;
     try {
       if (Platform.OS === 'android') {
@@ -93,7 +94,7 @@ export function usePushNotifications(enabled: boolean): UsePushNotificationsResu
   }, [enabled, registerToken]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || Platform.OS === 'web') return;
     const receivedSubscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         const content = notification.request.content;
@@ -143,6 +144,9 @@ export function usePushNotifications(enabled: boolean): UsePushNotificationsResu
   }, [enabled]);
 
   const requestPermissions = useCallback(async () => {
+    if (Platform.OS === 'web') {
+      return null;
+    }
     const { status } = await Notifications.requestPermissionsAsync();
     setPermissionStatus(status);
     if (status === 'granted') {

@@ -22,7 +22,7 @@ async function readToken(): Promise<string | null> {
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await readToken();
-  if (token) {
+  if (token && token !== 'cookie') {
     config.headers.set('Authorization', `Bearer ${token}`);
   }
   return config;

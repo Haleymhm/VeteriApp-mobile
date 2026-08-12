@@ -1,7 +1,7 @@
 import '../global.css';
 import { useEffect } from 'react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { Stack, useSegments } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { queryClient } from '@/lib/queryClient';
@@ -12,6 +12,7 @@ import { PushNotificationsProvider } from '@/components/feedback/PushNotificatio
 export default function RootLayout() {
   const hydrate = useAuthStore((s) => s.hydrate);
   const status = useAuthStore((s) => s.status);
+  const segments = useSegments();
 
   useEffect(() => {
     if (status === 'idle') {
@@ -19,12 +20,12 @@ export default function RootLayout() {
     }
   }, [hydrate, status]);
 
-  const privateZone = status === 'authenticated';
+  const privateZone = segments[0] !== '(auth)';
 
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <StatusBar style="auto" />
+        <StatusBar style="dark" />
         <PushNotificationsProvider>
           <AuthGuard privateZone={privateZone}>
             <Stack
